@@ -1,0 +1,28 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { Camera, ClipboardCheck, Info } from "lucide-react";
+import type { AuditDraftItem } from "@/types";
+
+const defaults: AuditDraftItem[] = [
+  { id: "entrance", category: "ENTRANCE", requirement: "Accessible entrance", result: "COMPLIANT", severity: "HIGH", notes: "", correctiveAction: "Provide a step-free public entrance." },
+  { id: "ramp", category: "ENTRANCE", requirement: "Ramp with safe gradient and handrail", result: "NOT_COMPLIANT", severity: "HIGH", notes: "Steps at the main entrance; no wheelchair ramp is available.", correctiveAction: "Install an accessible ramp with continuous handrail and level landing." },
+  { id: "corridor", category: "MOVEMENT", requirement: "Clear corridors and tactile path", result: "PARTIALLY_COMPLIANT", severity: "MEDIUM", notes: "Tactile path ends before reception.", correctiveAction: "Continue the tactile route to the service counter." },
+  { id: "lift", category: "MOVEMENT", requirement: "Accessible lift controls", result: "COMPLIANT", severity: "HIGH", notes: "", correctiveAction: "" },
+  { id: "toilet", category: "TOILETS", requirement: "Accessible toilet and grab bars", result: "COMPLIANT", severity: "HIGH", notes: "", correctiveAction: "" },
+  { id: "parking", category: "PARKING", requirement: "Marked accessible parking", result: "PARTIALLY_COMPLIANT", severity: "MEDIUM", notes: "Bay is available but signage is faded.", correctiveAction: "Repaint bay and install visible sign." },
+  { id: "signage", category: "COMMUNICATION", requirement: "Directional and tactile signage", result: "COMPLIANT", severity: "MEDIUM", notes: "", correctiveAction: "" },
+];
+
+export function AuditChecklist({ onSubmit }: { onSubmit: () => void }) {
+  const [items, setItems] = useState(defaults);
+  const findings = useMemo(() => items.filter((item) => item.result === "NOT_COMPLIANT" || item.result === "PARTIALLY_COMPLIANT").length, [items]);
+  const update = (id: string, field: keyof AuditDraftItem, value: string) => setItems((list) => list.map((item) => item.id === id ? { ...item, [field]: value } : item));
+  return (
+    <form onSubmit={(event) => { event.preventDefault(); onSubmit(); }} className="space-y-5">
+      <div className="rounded-2xl border border-[#c8ddd2] bg-[#eff8f3] p-4 text-sm text-[#315f4e]"><div className="flex gap-3"><Info className="mt-0.5 shrink-0" size={18} /><div><p className="font-extrabold">Findings create accountable issues</p><p className="mt-1">Partially compliant and not compliant items become issues after submission. Human review remains final.</p></div></div></div>
+      {items.map((item) => <fieldset key={item.id} className="rounded-2xl border border-[#dfe6e1] bg-white p-5"><legend className="sr-only">{item.requirement}</legend><div className="grid gap-4 lg:grid-cols-[1fr_220px] lg:items-start"><div><p className="text-[10px] font-black uppercase tracking-[.16em] text-[#0b5d45]">{item.category}</p><h3 className="mt-1 font-extrabold">{item.requirement}</h3></div><label className="text-xs font-bold text-[#66736c]">Result<select value={item.result} onChange={(event) => update(item.id, "result", event.target.value)} className="mt-1.5 w-full rounded-xl border border-[#cad5cf] bg-white px-3 py-2.5 text-sm font-bold text-[#17231d] outline-none focus:border-[#0b5d45]"><option value="COMPLIANT">Compliant</option><option value="PARTIALLY_COMPLIANT">Partially compliant</option><option value="NOT_COMPLIANT">Not compliant</option><option value="NOT_APPLICABLE">Not applicable</option></select></label></div>{item.result !== "COMPLIANT" && item.result !== "NOT_APPLICABLE" && <div className="mt-4 grid gap-3 lg:grid-cols-2"><label className="text-xs font-bold text-[#66736c]">Notes<textarea value={item.notes} onChange={(event) => update(item.id, "notes", event.target.value)} rows={3} className="mt-1.5 w-full rounded-xl border border-[#cad5cf] px-3 py-2.5 text-sm font-normal outline-none focus:border-[#0b5d45]" /></label><label className="text-xs font-bold text-[#66736c]">Suggested corrective action<textarea value={item.correctiveAction} onChange={(event) => update(item.id, "correctiveAction", event.target.value)} rows={3} className="mt-1.5 w-full rounded-xl border border-[#cad5cf] px-3 py-2.5 text-sm font-normal outline-none focus:border-[#0b5d45]" /></label><label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[#afcbbb] bg-[#f6faf8] p-3 text-xs font-bold text-[#0b5d45]"><Camera size={16} />Add audit photo<input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" /></label><label className="text-xs font-bold text-[#66736c]">Severity<select value={item.severity} onChange={(event) => update(item.id, "severity", event.target.value)} className="mt-1.5 w-full rounded-xl border border-[#cad5cf] bg-white px-3 py-2.5 text-sm outline-none"><option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select></label></div>}</fieldset>)}
+      <div className="sticky bottom-3 flex flex-col items-center justify-between gap-3 rounded-2xl border border-[#c8ddd2] bg-white/95 p-4 shadow-[0_16px_42px_rgba(20,45,34,.14)] backdrop-blur sm:flex-row"><div><p className="font-black">{findings} issues will be created</p><p className="text-xs text-[#718078]">You can review and assign them after submission.</p></div><button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0b5d45] px-6 py-3.5 font-extrabold text-white sm:w-auto"><ClipboardCheck size={18} />Submit audit</button></div>
+    </form>
+  );
+}

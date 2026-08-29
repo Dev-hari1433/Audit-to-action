@@ -1,0 +1,9 @@
+@import "tailwindcss";
+:root { --background: #f6f8f5; --foreground: #17231d; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: var(--font-geist-sans), Arial, sans-serif; }
+a, button, input, select, textarea { transition: .18s ease; }
+::selection { background: #b9ded0; color: #12382d; }
+.leaflet-container { font-family: var(--font-geist-sans), Arial, sans-serif; z-index: 0; }
+.leaflet-control-attribution { font-size: 9px !important; }
