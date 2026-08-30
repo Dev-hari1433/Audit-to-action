@@ -120,7 +120,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const createAuditIssue = useCallback((buildingId: string) => {
     const building = buildings.find((item) => item.id === buildingId) ?? buildings[0];
-    const id = `ACC-${1200 + issues.length}`;
+    const nextIssueNumber = issues.reduce((highest, issue) => {
+      const numericId = Number(issue.id.match(/\d+/)?.[0] ?? 0);
+      return Math.max(highest, numericId);
+    }, 1200) + 1;
+    const id = `ACC-${nextIssueNumber}`;
     const issue: Issue = {
       id,
       buildingId: building.id,
