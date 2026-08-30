@@ -42,6 +42,16 @@ function saveSnapshot(snapshot: { role: Role | null; issues: Issue[]; reports: C
   }
 }
 
+function loadSnapshot(): { role: Role | null; issues: Issue[]; reports: CitizenReport[]; notifications: Notification[] } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const saved = window.localStorage.getItem(storageKey);
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<Role | null>(null);
   const [issues, setIssues] = useState<Issue[]>(seededIssues);
@@ -52,9 +62,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     queueMicrotask(() => {
       try {
-        const saved = window.localStorage.getItem(storageKey);
-        if (saved) {
-          const parsed = JSON.parse(saved);
+        const parsed = loadSnapshot();
+        if (parsed) {
           setRole(parsed.role ?? null);
           setIssues(parsed.issues ?? seededIssues);
           setReports(parsed.reports ?? initialReports);
@@ -77,12 +86,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback((nextRole: Role) => {
+    const current = loadSnapshot();
     setRole(nextRole);
-    saveSnapshot({ role: nextRole, issues, reports, notifications });
+    saveSnapshot({ role: nextRole, issues: current?.issues ?? issues, reports: current?.reports ?? reports, notifications: current?.notifications ?? notifications });
   }, [issues, reports, notifications]);
   const logout = useCallback(() => {
+    const current = loadSnapshot();
     setRole(null);
-    saveSnapshot({ role: null, issues, reports, notifications });
+    saveSnapshot({ role: null, issues: current?.issues ?? issues, reports: current?.reports ?? reports, notifications: current?.notifications ?? notifications });
   }, [issues, reports, notifications]);
 
   const resetDemo = useCallback(() => {
