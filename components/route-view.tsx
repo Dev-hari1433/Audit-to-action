@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { SiteLink as Link } from "@/components/site-link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { AdminBuildingDetailView, AuditDetailView, IssueDetailView, NewAuditView, VerificationView } from "@/components/views/workflow-views";

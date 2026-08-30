@@ -21,6 +21,7 @@ interface StoreValue {
   logout: () => void;
   resetDemo: () => void;
   submitReport: (input: ReportInput) => CitizenReport;
+  acceptReport: (id: string) => void;
   createAuditIssue: (buildingId: string) => Issue;
   assignIssue: (id: string, responsible: string, department: string, deadline: string) => void;
   startWork: (id: string) => void;
@@ -31,6 +32,15 @@ interface StoreValue {
 
 const StoreContext = createContext<StoreValue | null>(null);
 const storageKey = "accesstrack-demo-v1";
+
+function saveSnapshot(snapshot: { role: Role | null; issues: Issue[]; reports: CitizenReport[]; notifications: Notification[] }) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(snapshot));
+  } catch {
+    // The in-memory demo remains usable when browser storage is unavailable.
+  }
+}
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<Role | null>(null);
@@ -59,15 +69,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    window.localStorage.setItem(storageKey, JSON.stringify({ role, issues, reports, notifications }));
+    saveSnapshot({ role, issues, reports, notifications });
   }, [role, issues, reports, notifications, hydrated]);
 
   const notify = useCallback((title: string, message: string, type: Notification["type"] = "INFO") => {
     setNotifications((items) => [{ id: crypto.randomUUID(), title, message, type, read: false, createdAt: "Just now" }, ...items]);
   }, []);
 
-  const login = useCallback((nextRole: Role) => setRole(nextRole), []);
-  const logout = useCallback(() => setRole(null), []);
+  const login = useCallback((nextRole: Role) => {
+    setRole(nextRole);
+    saveSnapshot({ role: nextRole, issues, reports, notifications });
+  }, [issues, reports, notifications]);
+  const logout = useCallback(() => {
+    setRole(null);
+    saveSnapshot({ role: null, issues, reports, notifications });
+  }, [issues, reports, notifications]);
 
   const resetDemo = useCallback(() => {
     setIssues(seededIssues);
@@ -93,6 +109,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return report;
   }, [notify, reports.length]);
 
+  const acceptReport = useCallback((id: string) => {
+    const nextReports = reports.map((report) => report.id === id ? { ...report, status: "ASSIGNED" as const } : report);
+    const notification: Notification = { id: crypto.randomUUID(), title: "Citizen report assigned", message: `${id} is assigned to Hospital Engineering for action.`, type: "SUCCESS", read: false, createdAt: "Just now" };
+    const nextNotifications = [notification, ...notifications];
+    setReports(nextReports);
+    setNotifications(nextNotifications);
+    saveSnapshot({ role, issues, reports: nextReports, notifications: nextNotifications });
+  }, [issues, notifications, reports, role]);
+
   const createAuditIssue = useCallback((buildingId: string) => {
     const building = buildings.find((item) => item.id === buildingId) ?? buildings[0];
     const id = `ACC-${1200 + issues.length}`;
@@ -114,10 +139,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       escalationLevel: 0,
       progress: 10,
     };
-    setIssues((items) => [issue, ...items]);
-    notify("Audit finding created", `${id} requires assignment and a deadline.`, "WARNING");
+    const notification: Notification = { id: crypto.randomUUID(), title: "Audit finding created", message: `${id} requires assignment and a deadline.`, type: "WARNING", read: false, createdAt: "Just now" };
+    const nextIssues = [issue, ...issues];
+    const nextNotifications = [notification, ...notifications];
+    setIssues(nextIssues);
+    setNotifications(nextNotifications);
+    saveSnapshot({ role, issues: nextIssues, reports, notifications: nextNotifications });
     return issue;
-  }, [issues.length, notify]);
+  }, [issues, notifications, reports, role]);
 
   const assignIssue = useCallback((id: string, responsible: string, department: string, deadline: string) => {
     setIssues((items) => items.map((issue) => issue.id === id ? { ...issue, responsible, department, deadline, status: "PENDING", progress: 20 } : issue));
@@ -146,18 +175,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [notify]);
 
   const verifyIssue = useCallback((id: string, approved: boolean, comment: string) => {
-    setIssues((items) => items.map((issue) => issue.id === id ? {
+    const nextIssues: Issue[] = issues.map((issue) => issue.id === id ? {
       ...issue,
       status: approved ? "CLOSED" : "REWORK_REQUIRED",
       progress: approved ? 100 : 70,
       verifierComment: comment,
-    } : issue));
-    notify(approved ? "Issue verified" : "Rework required", approved ? `${id} was verified and closed.` : `${id} was returned for more work.`, approved ? "SUCCESS" : "WARNING");
-  }, [notify]);
+    } : issue);
+    const notification: Notification = { id: crypto.randomUUID(), title: approved ? "Issue verified" : "Rework required", message: approved ? `${id} was verified and closed.` : `${id} was returned for more work.`, type: approved ? "SUCCESS" : "WARNING", read: false, createdAt: "Just now" };
+    const nextNotifications = [notification, ...notifications];
+    setIssues(nextIssues);
+    setNotifications(nextNotifications);
+    saveSnapshot({ role, issues: nextIssues, reports, notifications: nextNotifications });
+  }, [issues, notifications, reports, role]);
 
   const markNotificationsRead = useCallback(() => setNotifications((items) => items.map((item) => ({ ...item, read: true }))), []);
 
-  const value = useMemo(() => ({ role, demoMode: true, issues, reports, notifications, login, logout, resetDemo, submitReport, createAuditIssue, assignIssue, startWork, submitEvidence, verifyIssue, markNotificationsRead }), [role, issues, reports, notifications, login, logout, resetDemo, submitReport, createAuditIssue, assignIssue, startWork, submitEvidence, verifyIssue, markNotificationsRead]);
+  const value = useMemo(() => ({ role, demoMode: true, issues, reports, notifications, login, logout, resetDemo, submitReport, acceptReport, createAuditIssue, assignIssue, startWork, submitEvidence, verifyIssue, markNotificationsRead }), [role, issues, reports, notifications, login, logout, resetDemo, submitReport, acceptReport, createAuditIssue, assignIssue, startWork, submitEvidence, verifyIssue, markNotificationsRead]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }

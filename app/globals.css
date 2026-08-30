@@ -1,9 +1,88 @@
 @import "tailwindcss";
-:root { --background: #f6f8f5; --foreground: #17231d; }
+:root {
+  --background: #f6f7f2;
+  --foreground: #14251e;
+  --forest-950: #0b2f25;
+  --forest-700: #0b6248;
+  --coral-500: #e56532;
+  --line: #dce5df;
+}
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; background: var(--background); color: var(--foreground); font-family: var(--font-geist-sans), Arial, sans-serif; }
-a, button, input, select, textarea { transition: .18s ease; }
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 8% -5%, rgba(189, 224, 210, .38), transparent 30rem),
+    radial-gradient(circle at 95% 12%, rgba(255, 220, 201, .3), transparent 27rem),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+a, button, input, select, textarea { transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+a, button, summary, label[for] { cursor: pointer; }
+button:not(:disabled):active, a:active { transform: translateY(1px) scale(.995); }
+button:disabled { cursor: not-allowed; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible {
+  outline: 3px solid rgba(229, 101, 50, .32);
+  outline-offset: 3px;
+}
 ::selection { background: #b9ded0; color: #12382d; }
 .leaflet-container { font-family: var(--font-geist-sans), Arial, sans-serif; z-index: 0; }
 .leaflet-control-attribution { font-size: 9px !important; }
+
+.brand-mark {
+  position: relative;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: visible;
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 15px;
+  color: white;
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255,255,255,.28), transparent 34%),
+    linear-gradient(145deg, #147556 0%, #0a4f3b 58%, #092f25 100%);
+  box-shadow: 0 10px 24px rgba(11, 75, 55, .22), inset 0 1px 0 rgba(255,255,255,.24);
+}
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 11px;
+}
+.brand-mark-inverse {
+  color: #0b5d45;
+  border-color: rgba(255,255,255,.75);
+  background: linear-gradient(145deg, #ffffff, #eaf3ef);
+  box-shadow: 0 10px 25px rgba(0,0,0,.18), inset 0 1px 0 white;
+}
+.brand-mark-check {
+  position: absolute;
+  right: -5px;
+  bottom: -4px;
+  z-index: 2;
+  display: grid;
+  width: 19px;
+  height: 19px;
+  place-items: center;
+  border: 2px solid white;
+  border-radius: 999px;
+  color: white;
+  background: var(--coral-500);
+  box-shadow: 0 4px 10px rgba(152, 58, 25, .26);
+}
+
+.premium-canvas {
+  background:
+    radial-gradient(circle at 8% 0%, rgba(189, 224, 210, .4), transparent 28rem),
+    radial-gradient(circle at 94% 18%, rgba(255, 221, 201, .35), transparent 25rem),
+    #f7f8f4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

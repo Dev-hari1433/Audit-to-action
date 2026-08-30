@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SiteLink as Link } from "@/components/site-link";
 import { CalendarDays, ChevronRight, MapPin } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 import type { Issue } from "@/types";

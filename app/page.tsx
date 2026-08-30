@@ -1,7 +1,6 @@
-"use client";
-
-import Link from "next/link";
 import { ArrowRight, Bot, CheckCircle2, Clock3, Eye, MapPin, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
+import { SiteLink as Link } from "@/components/site-link";
 
 const workflow = [
   "Audit",
@@ -15,18 +14,15 @@ const workflow = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#f6f8f5] text-[#17231d]">
-      <header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
-        <Link href="/" className="flex items-center gap-3 font-extrabold tracking-tight">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#0b5d45] text-white">A</span>
-          <span>ACCESS<span className="text-[#d55a2a]">TRACK</span></span>
-        </Link>
+    <main className="premium-canvas min-h-screen text-[#17231d]">
+      <header className="sticky top-0 z-50 border-b border-[#173c30]/[.07] bg-[#f7f8f4]/90 backdrop-blur-xl"><div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8 lg:px-10">
+        <Link href="/" aria-label="AccessTrack home"><BrandLogo tagline="Access into action" /></Link>
         <nav className="flex items-center gap-2 text-sm font-semibold md:gap-8" aria-label="Primary navigation">
           <Link href="/buildings" className="hidden hover:text-[#0b5d45] sm:block">Buildings</Link>
           <a href="#how-it-works" className="hidden hover:text-[#0b5d45] md:block">How it works</a>
           <Link href="/login" className="rounded-full border border-[#17231d]/15 bg-white px-5 py-2.5 hover:border-[#0b5d45]">Sign in</Link>
         </nav>
-      </header>
+      </div></header>
 
       <section className="mx-auto grid max-w-7xl gap-12 px-5 pb-12 pt-10 sm:px-8 md:pt-16 lg:grid-cols-[1.05fr_.95fr] lg:px-10 lg:pb-20">
         <div className="flex flex-col justify-center">
@@ -49,7 +45,8 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="relative rounded-[2rem] bg-[#12382d] p-5 text-white shadow-[0_28px_70px_rgba(16,56,43,.22)] sm:p-7">
+        <div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-[linear-gradient(145deg,#164638,#0c2d24)] p-5 text-white shadow-[0_32px_80px_rgba(16,56,43,.24)] sm:p-7">
+          <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#e56532]/15 blur-3xl" />
           <div className="mb-8 flex items-start justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[.18em] text-[#9ecbbb]">Live accountability</p>
@@ -120,7 +117,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="border-t border-[#dfe6e1] bg-white"><div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-8 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10"><div><p className="font-black">ACCESS<span className="text-[#d95425]">TRACK</span></p><p className="mt-1 text-xs text-[#748078]">From accessibility audit to action.</p></div><p className="text-xs text-[#748078]">Fictional Chennai pilot data · Monitoring scores are not legal certification.</p></div></footer>
+      <footer className="border-t border-[#dfe6e1] bg-white"><div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-8 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10"><BrandLogo tagline="From audit to action" /><p className="text-xs text-[#748078]">Fictional Chennai pilot data · Monitoring scores are not legal certification.</p></div></footer>
     </main>
   );
 }

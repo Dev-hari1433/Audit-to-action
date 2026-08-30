@@ -1,13 +1,13 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { SiteLink as Link } from "@/components/site-link";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowLeft, Building2, Camera, CheckCircle2, LocateFixed, MapPin, Mic, Search, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { BuildingCard } from "@/components/building-card";
+import { BrandLogo } from "@/components/brand-logo";
 import { BuildingMap } from "@/components/building-map";
 import { IssueCard } from "@/components/issue-card";
 import { ScoreCard } from "@/components/score-card";
@@ -19,13 +19,12 @@ const roleHome: Record<Role, string> = { CITIZEN: "/citizen/dashboard", AUDITOR:
 const roleLabels: Record<Role, string> = { CITIZEN: "Citizen", AUDITOR: "Auditor", BUILDING_MANAGER: "Manager", ADMIN: "Administrator" };
 
 function PublicHeader() {
-  return <header className="border-b border-[#dfe6e1] bg-white"><div className="mx-auto flex h-[70px] max-w-7xl items-center justify-between px-5 sm:px-8"><Link href="/" className="flex items-center gap-3 font-black"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[#0b5d45] text-white">A</span><span>ACCESS<span className="text-[#d95425]">TRACK</span></span></Link><nav className="flex items-center gap-2 text-sm font-bold"><Link className="hidden rounded-xl px-4 py-2.5 hover:bg-[#f2f6f3] sm:block" href="/buildings">Buildings</Link><Link className="rounded-xl bg-[#12382d] px-4 py-2.5 text-white" href="/login">Demo login</Link></nav></div></header>;
+  return <header className="border-b border-[#dfe6e1] bg-white/95 backdrop-blur"><div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 sm:px-8"><Link href="/" aria-label="AccessTrack home"><BrandLogo tagline="Access into action" /></Link><nav className="flex items-center gap-2 text-sm font-bold"><Link className="hidden rounded-xl px-4 py-2.5 hover:bg-[#f2f6f3] sm:block" href="/buildings">Buildings</Link><Link className="rounded-xl bg-[#12382d] px-4 py-2.5 text-white shadow-[0_8px_20px_rgba(18,56,45,.16)]" href="/login">Demo login</Link></nav></div></header>;
 }
 
 export function LoginView() {
   const { login, role } = useStore();
-  const router = useRouter();
-  const selectRole = (nextRole: Role) => { login(nextRole); router.push(roleHome[nextRole]); };
+  const selectRole = (nextRole: Role) => { login(nextRole); window.location.assign(roleHome[nextRole]); };
   return (
     <main className="min-h-screen bg-[#f3f6f4]"><PublicHeader /><div className="mx-auto grid max-w-6xl gap-8 px-5 py-10 sm:px-8 lg:grid-cols-[.8fr_1.2fr] lg:py-16"><section className="rounded-[2rem] bg-[#12382d] p-7 text-white sm:p-10"><p className="text-xs font-black uppercase tracking-[.18em] text-[#9fc8b9]">Demo ready</p><h1 className="mt-4 text-4xl font-black tracking-tight">See accountability from every side.</h1><p className="mt-4 leading-7 text-[#c9ddd5]">Switch between roles without credentials. Every action is saved locally, so you can demonstrate the complete audit-to-closure journey.</p><div className="mt-8 space-y-3">{["Create an audit finding", "Assign responsibility and deadline", "Upload completion evidence", "Approve or request rework"].map((text, index) => <div key={text} className="flex items-center gap-3 rounded-xl bg-white/10 p-3 text-sm font-bold"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#ff7840] text-xs">{index + 1}</span>{text}</div>)}</div><p className="mt-8 text-xs text-[#9fc8b9]">Supabase is used when configured. This demo safely falls back to seeded local data.</p></section><section className="rounded-[2rem] border border-[#dfe6e1] bg-white p-6 shadow-[0_18px_55px_rgba(20,45,34,.08)] sm:p-9"><p className="text-xs font-black uppercase tracking-[.18em] text-[#0b5d45]">{role ? `Currently: ${roleLabels[role]}` : "Choose a workspace"}</p><h2 className="mt-2 text-3xl font-black">Login to demo mode</h2><p className="mt-2 text-sm text-[#6b7870]">No email or password required.</p><div className="mt-7 grid gap-3 sm:grid-cols-2">{demoAccounts.map((account) => <button key={account.role} onClick={() => selectRole(account.role)} className="group rounded-2xl border border-[#dfe6e1] p-5 text-left hover:border-[#0b5d45] hover:bg-[#f4faf7]"><div className="flex items-start justify-between"><span className="rounded-xl bg-[#e8f3ee] p-2.5 text-[#0b5d45]">{account.role === "ADMIN" ? <ShieldCheck size={20} /> : <UserRound size={20} />}</span><span className="text-xl text-[#a0aba5] group-hover:translate-x-1 group-hover:text-[#0b5d45]">→</span></div><p className="mt-4 text-xs font-black uppercase tracking-wider text-[#0b5d45]">Login as {roleLabels[account.role]}</p><p className="mt-1 text-lg font-extrabold">{account.name}</p><p className="mt-1 text-xs text-[#738078]">{account.detail}</p></button>)}</div><div className="mt-6 flex justify-between text-sm"><Link href="/register" className="font-bold text-[#0b5d45] hover:underline">Create a citizen account</Link><Link href="/" className="font-bold text-[#65736b] hover:underline">Back to home</Link></div></section></div></main>
   );
@@ -43,7 +42,10 @@ export function ReportProblemView() {
   const [listening, setListening] = useState(false);
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<ReportForm>({ resolver: zodResolver(reportSchema), defaultValues: { buildingId: "bld-01", category: "RAMP", description: "", location: "", contact: "" } });
   const onSubmit = (values: ReportForm) => setSubmittedId(submitReport(values).id);
-  const useLocation = () => navigator.geolocation?.getCurrentPosition(() => setValue("location", "Main entrance — current location attached"), () => setValue("location", "Main entrance"));
+  const useLocation = () => {
+    if (!navigator.geolocation) { setValue("location", "Main entrance"); return; }
+    navigator.geolocation.getCurrentPosition(() => setValue("location", "Main entrance — current location attached"), () => setValue("location", "Main entrance"));
+  };
   const startVoice = () => {
     const SpeechRecognition = (window as unknown as { webkitSpeechRecognition?: new () => { lang: string; start: () => void; onresult: (event: { results: { 0: { transcript: string } }[] }) => void; onend: () => void } }).webkitSpeechRecognition;
     if (!SpeechRecognition) { setValue("description", "There is no wheelchair ramp at the main entrance of Government General Hospital."); setValue("location", "Main entrance"); return; }
@@ -67,5 +69,8 @@ export function BuildingDetailView({ id }: { id: string }) {
 }
 
 export function RegisterView() {
-  return <main className="min-h-screen bg-[#f3f6f4]"><PublicHeader /><div className="mx-auto max-w-xl px-5 py-14"><section className="rounded-[2rem] border border-[#dfe6e1] bg-white p-7 shadow-lg"><h1 className="text-3xl font-black">Create citizen account</h1><p className="mt-2 text-sm text-[#66736c]">Optional for anonymous reports. An account lets you see every report in one place.</p><form className="mt-7 space-y-4" onSubmit={(event) => event.preventDefault()}>{[["Full name","text"],["Email","email"],["Password","password"]].map(([label,type]) => <label key={label} className="block text-sm font-bold">{label}<input type={type} className="mt-2 w-full rounded-xl border border-[#c9d4ce] px-4 py-3.5 outline-none focus:border-[#0b5d45]" /></label>)}<button className="w-full rounded-xl bg-[#0b5d45] px-5 py-4 font-black text-white">Create account</button></form><p className="mt-5 text-center text-sm">Already have access? <Link href="/login" className="font-bold text-[#0b5d45]">Demo login</Link></p></section></div></main>;
+  const { login } = useStore();
+  const [created, setCreated] = useState(false);
+  if (created) return <main className="min-h-screen bg-[#f3f6f4]"><PublicHeader /><div className="mx-auto max-w-xl px-5 py-16"><section className="rounded-[2rem] border border-emerald-200 bg-white p-8 text-center shadow-lg"><span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-100 text-emerald-700"><CheckCircle2 size={34} /></span><h1 className="mt-5 text-3xl font-black">Your citizen workspace is ready</h1><p className="mt-2 text-[#66736c]">This prototype keeps your reports securely on this device.</p><button onClick={() => { login("CITIZEN"); window.location.assign("/citizen/dashboard"); }} className="mt-7 w-full rounded-xl bg-[#0b5d45] px-5 py-4 font-black text-white">Open citizen dashboard</button></section></div></main>;
+  return <main className="min-h-screen bg-[#f3f6f4]"><PublicHeader /><div className="mx-auto max-w-xl px-5 py-14"><section className="rounded-[2rem] border border-[#dfe6e1] bg-white p-7 shadow-lg"><h1 className="text-3xl font-black">Create citizen account</h1><p className="mt-2 text-sm text-[#66736c]">Optional for anonymous reports. An account lets you see every report in one place.</p><form className="mt-7 space-y-4" onSubmit={(event) => { event.preventDefault(); setCreated(true); }}>{[["Full name","text"],["Email","email"],["Password","password"]].map(([label,type]) => <label key={label} className="block text-sm font-bold">{label}<input required minLength={type === "password" ? 6 : undefined} type={type} className="mt-2 w-full rounded-xl border border-[#c9d4ce] px-4 py-3.5 outline-none focus:border-[#0b5d45]" /></label>)}<button type="submit" className="w-full rounded-xl bg-[#0b5d45] px-5 py-4 font-black text-white">Create account</button></form><p className="mt-5 text-center text-sm">Already have access? <Link href="/login" className="font-bold text-[#0b5d45]">Demo login</Link></p></section></div></main>;
 }

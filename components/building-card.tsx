@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SiteLink as Link } from "@/components/site-link";
 import { ArrowUpRight, Building2, MapPin } from "lucide-react";
 import { ScoreCard } from "@/components/score-card";
 import type { Building } from "@/types";
