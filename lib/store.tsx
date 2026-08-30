@@ -81,10 +81,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     saveSnapshot({ role, issues, reports, notifications });
   }, [role, issues, reports, notifications, hydrated]);
 
-  const notify = useCallback((title: string, message: string, type: Notification["type"] = "INFO") => {
-    setNotifications((items) => [{ id: crypto.randomUUID(), title, message, type, read: false, createdAt: "Just now" }, ...items]);
-  }, []);
-
   const login = useCallback((nextRole: Role) => {
     const current = loadSnapshot();
     setRole(nextRole);
@@ -100,13 +96,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setIssues(seededIssues);
     setReports(initialReports);
     setNotifications(initialNotifications);
-    window.localStorage.removeItem(storageKey);
-  }, []);
+    saveSnapshot({ role, issues: seededIssues, reports: initialReports, notifications: initialNotifications });
+  }, [role]);
 
   const submitReport = useCallback((input: ReportInput) => {
+    const current = loadSnapshot();
+    const currentReports = current?.reports ?? reports;
     const building = buildings.find((item) => item.id === input.buildingId) ?? buildings[0];
     const report: CitizenReport = {
-      id: `ACC-2026-${String(125 + reports.length).padStart(5, "0")}`,
+      id: `ACC-2026-${String(125 + currentReports.length).padStart(5, "0")}`,
       buildingId: building.id,
       buildingName: building.name,
       category: input.category,
@@ -115,23 +113,30 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       status: "SUBMITTED",
       createdAt: new Date().toISOString().slice(0, 10),
     };
-    setReports((items) => [report, ...items]);
-    notify("Report submitted", `${report.id} has been sent for accessibility review.`, "SUCCESS");
-    return report;
-  }, [notify, reports.length]);
-
-  const acceptReport = useCallback((id: string) => {
-    const nextReports = reports.map((report) => report.id === id ? { ...report, status: "ASSIGNED" as const } : report);
-    const notification: Notification = { id: crypto.randomUUID(), title: "Citizen report assigned", message: `${id} is assigned to Hospital Engineering for action.`, type: "SUCCESS", read: false, createdAt: "Just now" };
-    const nextNotifications = [notification, ...notifications];
+    const notification: Notification = { id: crypto.randomUUID(), title: "Report submitted", message: `${report.id} has been sent for accessibility review.`, type: "SUCCESS", read: false, createdAt: "Just now" };
+    const nextReports = [report, ...currentReports];
+    const nextNotifications = [notification, ...(current?.notifications ?? notifications)];
     setReports(nextReports);
     setNotifications(nextNotifications);
-    saveSnapshot({ role, issues, reports: nextReports, notifications: nextNotifications });
+    saveSnapshot({ role: current?.role ?? role, issues: current?.issues ?? issues, reports: nextReports, notifications: nextNotifications });
+    return report;
+  }, [issues, notifications, reports, role]);
+
+  const acceptReport = useCallback((id: string) => {
+    const current = loadSnapshot();
+    const nextReports = (current?.reports ?? reports).map((report) => report.id === id ? { ...report, status: "ASSIGNED" as const } : report);
+    const notification: Notification = { id: crypto.randomUUID(), title: "Citizen report assigned", message: `${id} is assigned to Hospital Engineering for action.`, type: "SUCCESS", read: false, createdAt: "Just now" };
+    const nextNotifications = [notification, ...(current?.notifications ?? notifications)];
+    setReports(nextReports);
+    setNotifications(nextNotifications);
+    saveSnapshot({ role: current?.role ?? role, issues: current?.issues ?? issues, reports: nextReports, notifications: nextNotifications });
   }, [issues, notifications, reports, role]);
 
   const createAuditIssue = useCallback((buildingId: string) => {
+    const current = loadSnapshot();
+    const currentIssues = current?.issues ?? issues;
     const building = buildings.find((item) => item.id === buildingId) ?? buildings[0];
-    const nextIssueNumber = issues.reduce((highest, issue) => {
+    const nextIssueNumber = currentIssues.reduce((highest, issue) => {
       const numericId = Number(issue.id.match(/\d+/)?.[0] ?? 0);
       return Math.max(highest, numericId);
     }, 1200) + 1;
@@ -155,26 +160,37 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       progress: 10,
     };
     const notification: Notification = { id: crypto.randomUUID(), title: "Audit finding created", message: `${id} requires assignment and a deadline.`, type: "WARNING", read: false, createdAt: "Just now" };
-    const nextIssues = [issue, ...issues];
-    const nextNotifications = [notification, ...notifications];
+    const nextIssues = [issue, ...currentIssues];
+    const nextNotifications = [notification, ...(current?.notifications ?? notifications)];
     setIssues(nextIssues);
     setNotifications(nextNotifications);
-    saveSnapshot({ role, issues: nextIssues, reports, notifications: nextNotifications });
+    saveSnapshot({ role: current?.role ?? role, issues: nextIssues, reports: current?.reports ?? reports, notifications: nextNotifications });
     return issue;
   }, [issues, notifications, reports, role]);
 
   const assignIssue = useCallback((id: string, responsible: string, department: string, deadline: string) => {
-    setIssues((items) => items.map((issue) => issue.id === id ? { ...issue, responsible, department, deadline, status: "PENDING", progress: 20 } : issue));
-    notify("New issue assigned", `${id} was assigned to ${responsible}.`, "INFO");
-  }, [notify]);
+    const current = loadSnapshot();
+    const nextIssues: Issue[] = (current?.issues ?? issues).map((issue) => issue.id === id ? { ...issue, responsible, department, deadline, status: "PENDING", progress: 20 } : issue);
+    const notification: Notification = { id: crypto.randomUUID(), title: "New issue assigned", message: `${id} was assigned to ${responsible}.`, type: "INFO", read: false, createdAt: "Just now" };
+    const nextNotifications = [notification, ...(current?.notifications ?? notifications)];
+    setIssues(nextIssues);
+    setNotifications(nextNotifications);
+    saveSnapshot({ role: current?.role ?? role, issues: nextIssues, reports: current?.reports ?? reports, notifications: nextNotifications });
+  }, [issues, notifications, reports, role]);
 
   const startWork = useCallback((id: string) => {
-    setIssues((items) => items.map((issue) => issue.id === id ? { ...issue, status: "IN_PROGRESS", progress: 45 } : issue));
-    notify("Work started", `${id} is now in progress.`, "INFO");
-  }, [notify]);
+    const current = loadSnapshot();
+    const nextIssues: Issue[] = (current?.issues ?? issues).map((issue) => issue.id === id ? { ...issue, status: "IN_PROGRESS", progress: 45 } : issue);
+    const notification: Notification = { id: crypto.randomUUID(), title: "Work started", message: `${id} is now in progress.`, type: "INFO", read: false, createdAt: "Just now" };
+    const nextNotifications = [notification, ...(current?.notifications ?? notifications)];
+    setIssues(nextIssues);
+    setNotifications(nextNotifications);
+    saveSnapshot({ role: current?.role ?? role, issues: nextIssues, reports: current?.reports ?? reports, notifications: nextNotifications });
+  }, [issues, notifications, reports, role]);
 
   const submitEvidence = useCallback((id: string, description: string, fileName: string) => {
-    setIssues((items) => items.map((issue) => issue.id === id ? {
+    const current = loadSnapshot();
+    const nextIssues: Issue[] = (current?.issues ?? issues).map((issue) => issue.id === id ? {
       ...issue,
       status: "VERIFICATION_PENDING",
       progress: 80,
@@ -185,22 +201,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         createdAt: new Date().toISOString(),
         type: "AFTER",
       }],
-    } : issue));
-    notify("Evidence submitted", `${id} is ready for human verification.`, "SUCCESS");
-  }, [notify]);
+    } : issue);
+    const notification: Notification = { id: crypto.randomUUID(), title: "Evidence submitted", message: `${id} is ready for human verification.`, type: "SUCCESS", read: false, createdAt: "Just now" };
+    const nextNotifications = [notification, ...(current?.notifications ?? notifications)];
+    setIssues(nextIssues);
+    setNotifications(nextNotifications);
+    saveSnapshot({ role: current?.role ?? role, issues: nextIssues, reports: current?.reports ?? reports, notifications: nextNotifications });
+  }, [issues, notifications, reports, role]);
 
   const verifyIssue = useCallback((id: string, approved: boolean, comment: string) => {
-    const nextIssues: Issue[] = issues.map((issue) => issue.id === id ? {
+    const current = loadSnapshot();
+    const nextIssues: Issue[] = (current?.issues ?? issues).map((issue) => issue.id === id ? {
       ...issue,
       status: approved ? "CLOSED" : "REWORK_REQUIRED",
       progress: approved ? 100 : 70,
       verifierComment: comment,
     } : issue);
     const notification: Notification = { id: crypto.randomUUID(), title: approved ? "Issue verified" : "Rework required", message: approved ? `${id} was verified and closed.` : `${id} was returned for more work.`, type: approved ? "SUCCESS" : "WARNING", read: false, createdAt: "Just now" };
-    const nextNotifications = [notification, ...notifications];
+    const nextNotifications = [notification, ...(current?.notifications ?? notifications)];
     setIssues(nextIssues);
     setNotifications(nextNotifications);
-    saveSnapshot({ role, issues: nextIssues, reports, notifications: nextNotifications });
+    saveSnapshot({ role: current?.role ?? role, issues: nextIssues, reports: current?.reports ?? reports, notifications: nextNotifications });
   }, [issues, notifications, reports, role]);
 
   const markNotificationsRead = useCallback(() => setNotifications((items) => items.map((item) => ({ ...item, read: true }))), []);
