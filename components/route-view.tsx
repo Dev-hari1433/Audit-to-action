@@ -5,7 +5,9 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { AdminBuildingDetailView, AuditDetailView, IssueDetailView, NewAuditView, VerificationView } from "@/components/views/workflow-views";
 import { AdminBuildingsView, AdminDashboardView, AdminReportsView, AuditListView, AuditorDashboardView, CitizenDashboardView, CitizenReportsView, EscalationsView, IssueListView, ManagerDashboardView, UsersView } from "@/components/views/dashboard-views";
-import { BuildingDetailView, BuildingsView, LoginView, RegisterView, ReportProblemView } from "@/components/views/public-views";
+import { BuildingDetailView, BuildingsView, LoginView } from "@/components/views/public-views";
+import { RegisterView, ReportProblemView } from "@/components/views/verified-citizen-views";
+import { CitizenReportDetailView } from "@/components/views/citizen-report-detail";
 
 export function RouteView() {
   const pathname = usePathname();
@@ -20,7 +22,7 @@ export function RouteView() {
 
   if (pathname === "/citizen/dashboard") return <CitizenDashboardView />;
   if (pathname === "/citizen/reports") return <CitizenReportsView />;
-  if (parts[0] === "citizen" && parts[1] === "reports" && parts[2]) return <CitizenReportsView reportId={parts[2]} />;
+  if (parts[0] === "citizen" && parts[1] === "reports" && parts[2]) return <CitizenReportDetailView reportId={parts[2]} />;
 
   if (pathname === "/auditor/dashboard") return <AuditorDashboardView />;
   if (pathname === "/auditor/buildings") return <AdminBuildingsView auditor />;

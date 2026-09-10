@@ -2,7 +2,9 @@ import { AppShell } from "@/components/app-shell";
 import { SiteLink } from "@/components/site-link";
 import { AdminBuildingDetailView, AuditDetailView, IssueDetailView, NewAuditView, VerificationView } from "@/components/views/workflow-views";
 import { AdminBuildingsView, AdminDashboardView, AdminReportsView, AuditListView, AuditorDashboardView, CitizenDashboardView, CitizenReportsView, EscalationsView, IssueListView, ManagerDashboardView, UsersView } from "@/components/views/dashboard-views";
-import { BuildingDetailView, BuildingsView, LoginView, RegisterView, ReportProblemView } from "@/components/views/public-views";
+import { BuildingDetailView, BuildingsView, LoginView } from "@/components/views/public-views";
+import { RegisterView, ReportProblemView } from "@/components/views/verified-citizen-views";
+import { CitizenReportDetailView } from "@/components/views/citizen-report-detail";
 
 interface CatchAllProps {
   params: Promise<{ slug: string[] }>;
@@ -23,7 +25,7 @@ export default async function CatchAllPage({ params, searchParams }: CatchAllPro
 
   if (path === "/citizen/dashboard") return <CitizenDashboardView />;
   if (path === "/citizen/reports") return <CitizenReportsView />;
-  if (section === "citizen" && area === "reports" && id) return <CitizenReportsView reportId={id} />;
+  if (section === "citizen" && area === "reports" && id) return <CitizenReportDetailView reportId={id} />;
 
   if (path === "/auditor/dashboard") return <AuditorDashboardView />;
   if (path === "/auditor/buildings") return <AdminBuildingsView auditor />;

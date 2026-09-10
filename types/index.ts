@@ -34,6 +34,17 @@ export interface Evidence {
   fileName: string;
   createdAt: string;
   type: "BEFORE" | "AFTER" | "DOCUMENT";
+  photoCount?: number;
+  aiSummary?: string;
+}
+
+export interface PhotoEvidence {
+  id: string;
+  fileName: string;
+  width: number;
+  height: number;
+  quality: "CLEAR" | "RETAKE";
+  source: "CAMERA" | "UPLOAD";
 }
 
 export interface Issue {
@@ -54,6 +65,7 @@ export interface Issue {
   verifierComment?: string;
   escalationLevel: number;
   progress: number;
+  reportId?: string;
 }
 
 export interface CitizenReport {
@@ -63,8 +75,15 @@ export interface CitizenReport {
   category: string;
   description: string;
   location: string;
-  status: "SUBMITTED" | "UNDER_REVIEW" | "ACCEPTED" | "ASSIGNED" | "IN_PROGRESS" | "VERIFIED" | "RESOLVED";
+  status: "SUBMITTED" | "UNDER_REVIEW" | "ACCEPTED" | "ASSIGNED" | "IN_PROGRESS" | "EVIDENCE_UPLOADED" | "VERIFICATION_PENDING" | "REWORK_REQUIRED" | "VERIFIED" | "RESOLVED";
   createdAt: string;
+  citizenName?: string;
+  email?: string;
+  phone?: string;
+  phoneVerified?: boolean;
+  photos?: PhotoEvidence[];
+  aiSummary?: string;
+  followUps?: Array<{ id: string; description: string; createdAt: string; photoCount: number }>;
 }
 
 export interface Notification {

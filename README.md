@@ -6,13 +6,13 @@ AccessTrack is a demo-ready accessibility accountability platform for public and
 
 `Audit → Finding → Responsible owner → Deadline → Repair → Evidence → Human verification → Closure`
 
-Missed deadlines become overdue, trigger reminders, and move through three escalation levels. Optional AI can assist with photo review, voice entry, before/after comparison, and complaint classification, but it never verifies compliance.
+Missed deadlines become overdue, trigger reminders, and move through three escalation levels. AI preliminary screening is a required workflow gate for complaint and completion photos, but it never verifies compliance; a human auditor always makes the final decision.
 
 ## Features
 
 - Four role workspaces: Citizen, Auditor, Building Manager, and Administrator
 - Public landing page, building directory, profiles, monitoring scores, and issue visibility
-- Mobile-first citizen reporting with photo validation, geolocation, voice input, and tracking IDs
+- Mobile-first citizen reporting with mandatory phone OTP, live camera capture, multi-photo clarity checks, geolocation, voice input, and tracking IDs
 - Professional audit checklist covering entrance, movement, toilets, parking, and communication
 - Automatic issue creation for partial and non-compliant audit items
 - Admin assignment with responsible person, department, deadline, and required action
@@ -21,7 +21,7 @@ Missed deadlines become overdue, trigger reminders, and move through three escal
 - Deadline, overdue, reminder, and three-level escalation presentation
 - Admin analytics with Recharts and a Leaflet/OpenStreetMap building map
 - In-app notification center
-- Optional mock AI analysis when no API key is configured
+- Required AI screening state with a deterministic demo engine when no external AI key is configured
 - Seeded fictional Chennai data: 20 buildings, 20 audits, 120 issues, and 28 role-based users
 - Local demo mode that persists changes in `localStorage`
 - Supabase schema, Row Level Security policies, storage bucket, and seed script
@@ -90,7 +90,7 @@ Changes are stored in the browser. Use **Reset demo data** in the sidebar to res
 2. Select **Government General Hospital**. The ramp requirement is already marked **Not compliant** with an editable finding.
 3. Submit the audit; AccessTrack creates a new high-priority issue.
 4. Switch role to **Administrator**, open the newest issue, assign **Kavitha Mani / Hospital Engineering**, and set a deadline.
-5. Switch to **Building Manager**, open the assigned issue, click **Start work**, add evidence, optionally run the mock before/after comparison, and select **Ready for verification**.
+5. Switch to **Building Manager**, open the assigned issue, click **Start work**, capture clear completion photos, wait for the required AI comparison, and submit for verification.
 6. Switch to **Auditor**, open **Verification**, review the original finding and evidence, add a comment, and choose **Approve & close** or **Rework required**.
 7. Return as **Administrator** to see the status, notifications, score context, overdue queue, and escalation path.
 
@@ -99,23 +99,24 @@ The seeded `ACC-1024` hospital ramp issue also demonstrates overdue and Level 2 
 ## Supabase setup
 
 1. Create a Supabase project.
-2. Run `supabase/migrations/202608290001_initial_schema.sql` in the SQL editor or through the Supabase CLI.
-3. Run `supabase/seed.sql` for fictional pilot data.
-4. Add the values below to `.env.local`:
+2. Enable **Phone** authentication and configure an SMS provider (Twilio, MessageBird, Vonage, or an approved regional provider). For India, complete applicable TRAI DLT registration before production messaging.
+3. Run `supabase/migrations/202608290001_initial_schema.sql` in the SQL editor or through the Supabase CLI.
+4. Run `supabase/seed.sql` for fictional pilot data.
+5. Add the values below to `.env.local`:
 
 ```text
 NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
 The migration enables RLS, role policies, indexes, and a private 5 MB evidence bucket restricted to JPEG, PNG, WebP, and PDF. Never expose the service-role key in client code.
 
-Demo role switching is intentionally frictionless for judging. A production rollout should create real Supabase Auth users, populate `profiles`, and enforce server-side route checks in addition to the included database policies.
+The phone OTP flow uses Supabase when these values are configured. Without them, the public demo uses the visible code `246810`, so the complete verification flow remains testable without sending paid SMS. Demo role switching remains intentionally frictionless for judging.
 
 ## AI configuration
 
-No AI key is required. Without one, the interface presents realistic, clearly labelled mock analysis. To connect an AI service, set server-only values:
+AI screening is not skippable. Without an external key, the built-in demo engine completes image quality and relevance screening so the end-to-end prototype still works. To connect an external AI service, set server-only values:
 
 ```text
 OPENAI_API_KEY=...
