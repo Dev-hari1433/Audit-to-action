@@ -82,10 +82,10 @@ export function BuildingDetailView({ id }: { id: string }) {
   const { buildings: storeBuildings, issues, rewards } = useStore();
   const buildingList = storeBuildings && storeBuildings.length ? storeBuildings : buildings;
   const building = buildingList.find((item) => item.id === id) ?? buildingList[0];
-  const buildingIssues = issues.filter((issue) => issue.buildingId === building.id && issue.status !== "RESOLVED" && issue.status !== "CLOSED").slice(0, 4);
+  const buildingIssues = issues.filter((issue) => issue.buildingId === building.id && issue.status !== "CLOSED").slice(0, 4);
   const buildingRewards = rewards.filter((reward) => reward.buildingId === building.id);
   const resolvedIssuesWithEvidence = issues.filter(
-    (issue) => issue.buildingId === building.id && (issue.status === "RESOLVED" || issue.status === "CLOSED" || issue.evidence?.some((e) => e.type === "AFTER"))
+    (issue) => issue.buildingId === building.id && (issue.status === "CLOSED" || issue.evidence?.some((e) => e.type === "AFTER"))
   );
 
   return (

@@ -5,6 +5,12 @@ interface ExtractVoiceRequest {
   language?: string;
 }
 
+interface GeminiTextResponse {
+  candidates?: Array<{
+    content?: { parts?: Array<{ text?: string }> };
+  }>;
+}
+
 const chennaiBuildings = [
   { id: "bld-01", name: "Government General Hospital", keywords: ["hospital", "general hospital", "gh", "மருத்துவமனை", "अस्पताल", "ఆసుపత్రి"] },
   { id: "bld-02", name: "Anna Nagar Government College", keywords: ["anna nagar", "college", "கல்லூரி", "कॉलेज", "కళాశాల"] },
@@ -86,7 +92,7 @@ Format output strictly as valid JSON:
         clearTimeout(timeoutId);
 
         if (geminiRes.ok) {
-          const geminiData = (await geminiRes.json()) as any;
+          const geminiData = (await geminiRes.json()) as GeminiTextResponse;
           const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
           if (rawText) {
             const parsed = JSON.parse(rawText);

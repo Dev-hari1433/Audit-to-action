@@ -330,7 +330,7 @@ export function AuditorComplaintsView() {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => handleAccept(selectedReport)}
+                    onClick={() => handleQuickAccept(selectedReport)}
                     className="flex items-center justify-center gap-1.5 rounded-xl bg-[#0b5d45] px-4 py-3 text-xs font-black text-white hover:bg-[#074634]"
                   >
                     <CheckCircle2 size={15} /> [ACCEPT] Create Issue

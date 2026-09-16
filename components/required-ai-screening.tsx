@@ -13,6 +13,8 @@ interface RequiredAiScreeningProps {
   onComplete: (complete: boolean, summary: string, analysis?: AiPhotoAnalysis) => void;
 }
 
+type AiScreeningResponse = Partial<AiPhotoAnalysis>;
+
 export function RequiredAiScreening({
   photos,
   category,
@@ -81,7 +83,7 @@ export function RequiredAiScreening({
         });
 
         if (!res.ok) throw new Error("AI analysis service temporarily busy");
-        const data = (await res.json()) as any;
+        const data = (await res.json()) as AiScreeningResponse;
         if (!active) return;
 
         const aiResult: AiPhotoAnalysis = {

@@ -14,6 +14,12 @@ interface ExtractedData {
   description: string;
 }
 
+interface VoiceExtractionResponse {
+  success?: boolean;
+  extracted?: ExtractedData;
+  error?: string;
+}
+
 interface VoiceReportingModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -179,7 +185,7 @@ export function VoiceReportingModal({ isOpen, onClose, onConfirm }: VoiceReporti
       });
 
       if (!res.ok) throw new Error("Failed to process speech with AI");
-      const data = await res.json();
+      const data = (await res.json()) as VoiceExtractionResponse;
       if (data.success && data.extracted) {
         setExtracted(data.extracted);
       } else {

@@ -55,6 +55,28 @@ export interface PlaceSearchResult {
   lng: number;
 }
 
+interface NominatimReverseResponse {
+  display_name?: string;
+  address?: {
+    building?: string;
+    amenity?: string;
+    leisure?: string;
+    tourism?: string;
+    road?: string;
+    pedestrian?: string;
+    footway?: string;
+    suburb?: string;
+    neighbourhood?: string;
+    quarter?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+    county?: string;
+    state?: string;
+    postcode?: string;
+  };
+}
+
 /**
  * Search places, streets, landmarks across OpenStreetMap
  */
@@ -126,7 +148,7 @@ export async function reverseGeocode(
     clearTimeout(timeoutId);
 
     if (res.ok) {
-      const data = await res.json();
+      const data = (await res.json()) as NominatimReverseResponse;
       const addr = data.address || {};
       const parts = [
         addr.building || addr.amenity || addr.leisure || addr.tourism,

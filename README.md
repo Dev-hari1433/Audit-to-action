@@ -1,8 +1,19 @@
+<div align="center">
+
 # AccessTrack
 
 **From accessibility audit to verified action.**
 
-[Live demo](#live-demo) · [GitHub](https://github.com/Dev-hari1433/Audit-to-action) · [Report a barrier](#judge-walkthrough)
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Vercel](https://img.shields.io/badge/Deploy-Vercel-000000?logo=vercel&logoColor=white)
+
+[Live demo](#live-demo) · [GitHub](https://github.com/Dev-hari1433/Audit-to-action) · [5-minute walkthrough](#judge-walkthrough-5-minutes)
+
+![AccessTrack dashboard preview](public/og.png)
+
+</div>
 
 AccessTrack is an end-to-end accessibility accountability platform for public and private buildings. The Chennai pilot shows how a citizen report becomes assigned work, photo evidence, human verification, and public proof—not a PDF that sits on a shelf.
 
@@ -21,6 +32,14 @@ Closure, public badges, or escalation
 ```
 
 AI can flag blurry photos and extract voice context. **AI never closes an issue.** Only a certified human auditor can approve and close work.
+
+## Highlights
+
+- Four purpose-built workspaces: citizen, auditor, building manager, and administrator
+- Evidence-first remediation with before/after photos and multilingual voice reporting
+- Human-in-the-loop verification: AI assists, certified auditors make closure decisions
+- Public building scorecards, proof photos, recognition badges, and escalation history
+- Full seeded Chennai demo that works without external services or API keys
 
 ---
 

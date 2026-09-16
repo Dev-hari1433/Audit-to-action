@@ -48,6 +48,10 @@ interface Message {
   timestamp: string;
 }
 
+interface ChatResponse {
+  reply?: string;
+}
+
 export function AccessAssistant() {
   const { reports, issues, buildings } = useStore();
 
@@ -240,8 +244,8 @@ export function AccessAssistant() {
         }))
       })
     })
-      .then((res) => res.json())
-      .then((data: any) => {
+      .then((res) => res.json() as Promise<ChatResponse>)
+      .then((data) => {
         setIsThinking(false);
         if (data?.reply) {
           addAssistantMessage(data.reply, [

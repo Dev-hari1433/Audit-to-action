@@ -5,6 +5,12 @@ interface ChatRequest {
   history?: Array<{ role: "user" | "model"; parts: Array<{ text: string }> }>;
 }
 
+interface GeminiTextResponse {
+  candidates?: Array<{
+    content?: { parts?: Array<{ text?: string }> };
+  }>;
+}
+
 const SYSTEM_PROMPT = `You are Access Assistant, the official voice and AI intelligence of AccessTrack — India's accessibility accountability platform for public and private buildings (starting with Chennai).
 You speak naturally, warmly, and concisely, suitable for both text chat and real-time voice speech output (like Gemini Voice in the Gemini app).
 
@@ -65,7 +71,7 @@ export async function POST(request: Request) {
         clearTimeout(timeoutId);
 
         if (geminiRes.ok) {
-          const geminiData = (await geminiRes.json()) as any;
+          const geminiData = (await geminiRes.json()) as GeminiTextResponse;
           const reply = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
           if (reply) {
             return NextResponse.json({

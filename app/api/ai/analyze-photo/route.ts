@@ -8,6 +8,12 @@ interface AnalyzeRequest {
   beforePhoto?: string;
 }
 
+interface GeminiTextResponse {
+  candidates?: Array<{
+    content?: { parts?: Array<{ text?: string }> };
+  }>;
+}
+
 const categoryInsights: Record<string, { issue: string; indicators: string[] }> = {
   RAMP: {
     issue: "Entrance steps detected without independent wheelchair ramp",
@@ -171,7 +177,7 @@ Provide output strictly formatted as valid JSON with keys:
           clearTimeout(timeoutId);
 
           if (geminiRes.ok) {
-            const geminiData = (await geminiRes.json()) as any;
+            const geminiData = (await geminiRes.json()) as GeminiTextResponse;
             const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
             if (rawText) {
               const parsed = JSON.parse(rawText);
