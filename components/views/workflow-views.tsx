@@ -33,10 +33,320 @@ function IssueTimeline({ status }: { status: string }) {
 }
 
 export function IssueDetailView({ id, mode }: { id: string; mode: "admin" | "auditor" | "manager" }) {
-  const { issues, assignIssue, startWork, submitEvidence, verifyIssue } = useStore(); const issue = issues.find((item) => item.id === id) ?? issues[0]; const [responsible, setResponsible] = useState(issue.responsible === "Unassigned" ? "Kavitha Mani — Hospital Facilities Manager" : issue.responsible); const [department, setDepartment] = useState(issue.department === "Unassigned" ? "Hospital Engineering" : issue.department); const [deadline, setDeadline] = useState(issue.deadline === "Not set" ? "2026-09-28" : issue.deadline); const [assigned, setAssigned] = useState(false);
+  const { issues, assignIssue, startWork, submitEvidence, verifyIssue } = useStore();
+  const issue = issues.find((item) => item.id === id) ?? issues[0];
+  const [responsible, setResponsible] = useState(issue.responsible === "Unassigned" ? "Kavitha Mani — Hospital Facilities Manager" : issue.responsible);
+  const [department, setDepartment] = useState(issue.department === "Unassigned" ? "Hospital Engineering" : issue.department);
+  const [deadline, setDeadline] = useState(issue.deadline === "Not set" ? "2026-09-28" : issue.deadline);
+  const [assigned, setAssigned] = useState(false);
   const back = mode === "manager" ? "/manager/issues" : mode === "auditor" ? "/auditor/issues" : "/admin/issues";
-  const decision = (approved: boolean, comment: string) => { verifyIssue(issue.id, approved, comment); window.location.assign(mode === "auditor" ? "/auditor/verification" : back); };
-  return <AppShell title={issue.id} eyebrow="Accessibility issue"><div className="mb-5 flex items-center justify-between"><Link href={back} className="inline-flex items-center gap-2 text-sm font-bold text-[#617067]"><ArrowLeft size={16} />Back to issues</Link>{(issue.status === "OVERDUE" || issue.status === "ESCALATED") && <span className="flex items-center gap-2 rounded-xl bg-red-100 px-3 py-2 text-xs font-black text-red-800"><AlertTriangle size={15} />OVERDUE · ESCALATION LEVEL {Math.max(issue.escalationLevel,1)}</span>}</div><section className="rounded-2xl border border-[#dfe6e1] bg-white p-5 sm:p-7"><div className="flex flex-col justify-between gap-5 lg:flex-row"><div className="max-w-3xl"><div className="flex flex-wrap gap-2"><StatusBadge value={issue.status} /><StatusBadge value={issue.severity} /><span className="rounded-full bg-[#edf1ee] px-3 py-1 text-xs font-black text-[#5b6961]">{issue.category}</span></div><h2 className="mt-4 text-3xl font-black tracking-tight">{issue.title}</h2><p className="mt-3 leading-7 text-[#5e6c64]">{issue.description}</p></div><div className="min-w-[250px] rounded-xl bg-[#f3f6f4] p-4"><p className="flex items-center gap-2 text-sm font-black"><Building2 size={17} className="text-[#0b5d45]" />{issue.buildingName}</p><p className="mt-3 flex items-center gap-2 text-xs text-[#66736c]"><CalendarDays size={15} />Deadline: <strong className="text-[#17231d]">{issue.deadline}</strong></p><p className="mt-2 flex items-center gap-2 text-xs text-[#66736c]"><UserRound size={15} />{issue.responsible}</p></div></div><div className="mt-7 border-t border-[#e5eae7] pt-6"><IssueTimeline status={issue.status} /></div></section><div className="mt-5 grid gap-5 xl:grid-cols-[1fr_380px]"><div className="space-y-5"><section className="rounded-2xl border border-[#dfe6e1] bg-white p-5"><p className="text-xs font-black uppercase tracking-wider text-[#0b5d45]">Required corrective action</p><p className="mt-2 font-bold leading-7">{issue.actionRequired}</p></section>{mode === "admin" && <section className="rounded-2xl border border-[#dfe6e1] bg-white p-5"><h2 className="text-lg font-black">Assign responsibility and deadline</h2><p className="mt-1 text-sm text-[#66736c]">Responsibility is confirmed by an administrator; AI suggestions are editable.</p><div className="mt-5 grid gap-4 sm:grid-cols-2"><label className="text-sm font-bold">Responsible person<select value={responsible} onChange={(event) => setResponsible(event.target.value)} className="mt-2 w-full rounded-xl border border-[#c9d4ce] bg-white px-3 py-3 font-normal"><option>Kavitha Mani — Hospital Facilities Manager</option><option>Ramesh Iyer — Building Maintenance Lead</option></select></label><label className="text-sm font-bold">Department<select value={department} onChange={(event) => setDepartment(event.target.value)} className="mt-2 w-full rounded-xl border border-[#c9d4ce] bg-white px-3 py-3 font-normal"><option>Hospital Engineering</option><option>Building Administration</option><option>Public Works</option></select></label><label className="text-sm font-bold">Deadline<input type="date" value={deadline} onChange={(event) => setDeadline(event.target.value)} className="mt-2 w-full rounded-xl border border-[#c9d4ce] px-3 py-3 font-normal" /></label><label className="text-sm font-bold">Required action<input value={issue.actionRequired} readOnly className="mt-2 w-full rounded-xl border border-[#c9d4ce] bg-[#f4f6f4] px-3 py-3 font-normal" /></label></div><button onClick={() => { assignIssue(issue.id, responsible, department, deadline); setAssigned(true); }} className="mt-5 w-full rounded-xl bg-[#0b5d45] px-5 py-3.5 font-black text-white">{assigned ? "Assignment saved ✓" : "Assign issue"}</button></section>}{mode === "manager" && issue.status === "PENDING" && <section className="rounded-2xl border border-[#dfe6e1] bg-white p-5"><h2 className="text-lg font-black">Ready to start?</h2><p className="mt-1 text-sm text-[#66736c]">Starting work updates the accountability timeline. You still cannot verify or close the issue.</p><button onClick={() => startWork(issue.id)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#0b5d45] px-5 py-3.5 font-black text-white"><Wrench size={18} />Start work</button></section>}{mode === "manager" && ["IN_PROGRESS","REWORK_REQUIRED"].includes(issue.status) && <EvidenceUploader onSubmit={(description, photos, aiSummary) => submitEvidence(issue.id, description, photos, aiSummary)} />}{(mode === "auditor" || mode === "admin") && issue.status === "VERIFICATION_PENDING" && <VerificationPanel onDecision={decision} />}{issue.status === "CLOSED" && <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6"><div className="flex items-center gap-3"><CheckCircle2 className="text-emerald-700" /><div><h2 className="font-black text-emerald-900">Verified and closed</h2><p className="mt-1 text-sm text-emerald-800">A human verifier approved the evidence. The accessibility score is updated.</p></div></div>{issue.verifierComment && <p className="mt-4 rounded-xl bg-white/70 p-4 text-sm font-bold text-emerald-900">“{issue.verifierComment}”</p>}</section>}<section className="rounded-2xl border border-[#dfe6e1] bg-white p-5"><h2 className="flex items-center gap-2 font-black"><History size={18} />Evidence and activity</h2>{issue.evidence.length ? <div className="mt-4 grid gap-3 sm:grid-cols-2">{issue.evidence.map((item) => <div key={item.id} className="rounded-xl border border-[#dfe6e1] p-4"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[#e9f3ee] text-[#0b5d45]"><FileImage size={20} /></span><p className="mt-3 text-sm font-black">{item.fileName}</p><p className="mt-1 text-xs leading-5 text-[#66736c]">{item.description}</p>{item.photoCount && <p className="mt-2 text-xs font-bold text-[#0b5d45]">{item.photoCount} clear photo{item.photoCount === 1 ? "" : "s"}</p>}{item.aiSummary && <p className="mt-2 rounded-lg bg-[#eff8f3] p-2 text-xs leading-5 text-[#526159]">AI preliminary check: {item.aiSummary}</p>}<p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-[#85918a]">{item.type} evidence</p></div>)}</div> : <div className="mt-4 rounded-xl border-2 border-dashed border-[#d5ddd8] p-7 text-center"><Upload className="mx-auto text-[#91a099]" /><p className="mt-2 text-sm font-bold">No completion evidence yet</p></div>}</section></div><aside className="space-y-5"><div className="rounded-2xl border border-[#dfe6e1] bg-white p-5"><h2 className="font-black">Original audit finding</h2><div className="mt-4 grid h-44 place-items-center rounded-xl bg-[linear-gradient(135deg,#dce8e1,#f4e1d8)] text-center"><div><Camera className="mx-auto text-[#587468]" /><p className="mt-2 text-xs font-bold text-[#526159]">Entrance audit photo</p><p className="text-[10px] text-[#718078]">Steps visible · no ramp</p></div></div><p className="mt-4 text-xs font-black uppercase tracking-wider text-[#b33c25]">Not compliant</p><p className="mt-1 text-sm text-[#5f6d65]">Wheelchair users cannot enter independently from the public route.</p></div><EscalationTimeline level={issue.escalationLevel} />{issue.evidence.length > 0 && <div className="rounded-2xl border border-[#cce0d6] bg-[#f2f8f5] p-5"><p className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#0b5d45]"><Sparkles size={15} />Required AI preliminary check</p><p className="mt-2 text-sm font-bold">Evidence screening completed.</p><p className="mt-1 text-xs text-[#66736c]">Human verification required. AI cannot close this issue.</p></div>}</aside></div></AppShell>;
+  const decision = (approved: boolean, comment: string) => {
+    verifyIssue(issue.id, approved, comment);
+    window.location.assign(mode === "auditor" ? "/auditor/verification" : back);
+  };
+
+  const beforeEvidence = issue.evidence.find((e) => e.type === "BEFORE");
+  const afterEvidence = issue.evidence.filter((e) => e.type === "AFTER");
+  const latestAfter = afterEvidence[afterEvidence.length - 1];
+
+  return (
+    <AppShell title={issue.id} eyebrow="Accessibility issue">
+      <div className="mb-5 flex items-center justify-between">
+        <Link href={back} className="inline-flex items-center gap-2 text-sm font-bold text-[#617067]">
+          <ArrowLeft size={16} />Back to issues
+        </Link>
+        {(issue.status === "OVERDUE" || issue.status === "ESCALATED") && (
+          <span className="flex items-center gap-2 rounded-xl bg-red-100 px-3 py-2 text-xs font-black text-red-800">
+            <AlertTriangle size={15} />OVERDUE · ESCALATION LEVEL {Math.max(issue.escalationLevel, 1)}
+          </span>
+        )}
+      </div>
+
+      <section className="rounded-2xl border border-[#dfe6e1] bg-white p-5 sm:p-7">
+        <div className="flex flex-col justify-between gap-5 lg:flex-row">
+          <div className="max-w-3xl">
+            <div className="flex flex-wrap gap-2">
+              <StatusBadge value={issue.status} />
+              <StatusBadge value={issue.severity} />
+              <span className="rounded-full bg-[#edf1ee] px-3 py-1 text-xs font-black text-[#5b6961]">
+                {issue.category}
+              </span>
+            </div>
+            <h2 className="mt-4 text-3xl font-black tracking-tight">{issue.title}</h2>
+            <p className="mt-3 leading-7 text-[#5e6c64]">{issue.description}</p>
+          </div>
+          <div className="min-w-[250px] rounded-xl bg-[#f3f6f4] p-4">
+            <p className="flex items-center gap-2 text-sm font-black">
+              <Building2 size={17} className="text-[#0b5d45]" />{issue.buildingName}
+            </p>
+            <p className="mt-3 flex items-center gap-2 text-xs text-[#66736c]">
+              <CalendarDays size={15} />Deadline: <strong className="text-[#17231d]">{issue.deadline}</strong>
+            </p>
+            <p className="mt-2 flex items-center gap-2 text-xs text-[#66736c]">
+              <UserRound size={15} />{issue.responsible}
+            </p>
+            <p className="mt-2 text-xs font-bold text-[#0b5d45]">
+              Dept: {issue.department}
+            </p>
+          </div>
+        </div>
+        <div className="mt-7 border-t border-[#e5eae7] pt-6">
+          <IssueTimeline status={issue.status} />
+        </div>
+      </section>
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_380px]">
+        <div className="space-y-5">
+          <section className="rounded-2xl border border-[#dfe6e1] bg-white p-5">
+            <p className="text-xs font-black uppercase tracking-wider text-[#0b5d45]">Required corrective action</p>
+            <p className="mt-2 font-bold leading-7">{issue.actionRequired}</p>
+            {issue.auditorNotes && (
+              <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 text-xs text-emerald-950">
+                <span className="font-black">Auditor Directive: </span>{issue.auditorNotes}
+              </div>
+            )}
+          </section>
+
+          {/* Admin Assignment Screen */}
+          {mode === "admin" && (
+            <section className="rounded-2xl border border-[#dfe6e1] bg-white p-5">
+              <h2 className="text-lg font-black">Assign responsibility and deadline</h2>
+              <p className="mt-1 text-sm text-[#66736c]">Responsibility is confirmed by an administrator; AI suggestions are editable.</p>
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                <label className="text-sm font-bold">Responsible person
+                  <select value={responsible} onChange={(event) => setResponsible(event.target.value)} className="mt-2 w-full rounded-xl border border-[#c9d4ce] bg-white px-3 py-3 font-normal">
+                    <option>Kavitha Mani — Hospital Facilities Manager</option>
+                    <option>Ramesh Iyer — Building Maintenance Lead</option>
+                  </select>
+                </label>
+                <label className="text-sm font-bold">Department
+                  <select value={department} onChange={(event) => setDepartment(event.target.value)} className="mt-2 w-full rounded-xl border border-[#c9d4ce] bg-white px-3 py-3 font-normal">
+                    <option>Hospital Engineering</option>
+                    <option>Building Administration</option>
+                    <option>Public Works</option>
+                  </select>
+                </label>
+                <label className="text-sm font-bold">Deadline
+                  <input type="date" value={deadline} onChange={(event) => setDeadline(event.target.value)} className="mt-2 w-full rounded-xl border border-[#c9d4ce] px-3 py-3 font-normal" />
+                </label>
+                <label className="text-sm font-bold">Required action
+                  <input value={issue.actionRequired} readOnly className="mt-2 w-full rounded-xl border border-[#c9d4ce] bg-[#f4f6f4] px-3 py-3 font-normal" />
+                </label>
+              </div>
+              <button onClick={() => { assignIssue(issue.id, responsible, department, deadline); setAssigned(true); }} className="mt-5 w-full rounded-xl bg-[#0b5d45] px-5 py-3.5 font-black text-white">
+                {assigned ? "Assignment saved ✓" : "Assign issue"}
+              </button>
+            </section>
+          )}
+
+          {/* Manager Workspace: Assigned Notice & Quick Start */}
+          {mode === "manager" && (issue.status === "ASSIGNED" || issue.status === "PENDING") && (
+            <section className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <span className="rounded-full bg-[#0b5d45] px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white">
+                    Assigned to your department
+                  </span>
+                  <h3 className="mt-2 text-xl font-black text-[#113327]">Civil Remediation Assigned</h3>
+                  <p className="mt-1 text-sm text-[#38564a]">
+                    Responsible: <strong>{issue.responsible}</strong> · Target Deadline: <strong>{issue.deadline}</strong>
+                  </p>
+                </div>
+                <button
+                  onClick={() => startWork(issue.id)}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0b5d45] px-5 py-3 font-black text-white hover:bg-[#074634] transition shrink-0"
+                >
+                  <Wrench size={17} /> Mark Work In Progress
+                </button>
+              </div>
+            </section>
+          )}
+
+          {/* Manager Workspace: Evidence Uploader & AI Comparison */}
+          {mode === "manager" && ["ASSIGNED", "PENDING", "IN_PROGRESS", "REWORK_REQUIRED"].includes(issue.status) && (
+            <EvidenceUploader
+              category={issue.category}
+              beforePhotoUrl={beforeEvidence?.fileName}
+              beforeDescription={issue.description}
+              onSubmit={(description, photos, aiSummary, documentName, aiAnalysis) =>
+                submitEvidence(issue.id, description, photos, aiSummary, documentName, aiAnalysis)
+              }
+            />
+          )}
+
+          {/* Manager Workspace: Verification Pending Banner */}
+          {mode === "manager" && issue.status === "VERIFICATION_PENDING" && (
+            <section className="rounded-2xl border border-amber-300 bg-[#fffbeb] p-6">
+              <div className="flex items-center gap-3">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-900">
+                  <ShieldCheck size={24} />
+                </span>
+                <div>
+                  <h3 className="text-xl font-black text-amber-950">Work Evidence Awaiting Certified Auditor Review</h3>
+                  <p className="mt-1 text-sm text-amber-800">
+                    Your completion photos and work notes were successfully submitted with AI preliminary verification. An assigned certified auditor will inspect the physical site to verify and certify ticket closure.
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Auditor Verification Panel */}
+          {(mode === "auditor" || mode === "admin") && issue.status === "VERIFICATION_PENDING" && (
+            <div className="space-y-4">
+              {latestAfter && (
+                <div className="rounded-2xl border border-[#bad5c8] bg-[#f4faf7] p-5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-black uppercase tracking-wider text-[#0b5d45]">
+                      Submitted Proof of Work
+                    </p>
+                    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800">
+                      AI Score: {latestAfter.aiAnalysis?.progressScore ?? 100}%
+                    </span>
+                  </div>
+                  <h3 className="mt-1 text-lg font-black text-[#12382d]">Remediation Evidence Summary</h3>
+                  <p className="mt-2 text-sm text-[#465f54]">{latestAfter.description}</p>
+                  {latestAfter.aiSummary && (
+                    <p className="mt-2 rounded-xl bg-white p-3 text-xs text-[#305343] border border-[#cfdfd6]">
+                      <span className="font-bold">AI Screening:</span> {latestAfter.aiSummary}
+                    </p>
+                  )}
+                </div>
+              )}
+              <VerificationPanel onDecision={decision} />
+            </div>
+          )}
+
+          {issue.status === "CLOSED" && (
+            <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="text-emerald-700" size={28} />
+                <div>
+                  <h2 className="font-black text-emerald-900 text-xl">Independently Verified &amp; Closed</h2>
+                  <p className="mt-1 text-sm text-emerald-800">
+                    A certified auditor physically inspected and approved the barrier remediation. Building accessibility score increased.
+                  </p>
+                </div>
+              </div>
+              {issue.verifierComment && (
+                <p className="mt-4 rounded-xl bg-white/80 p-4 text-sm font-bold text-emerald-900 border border-emerald-200">
+                  Verifier sign-off: &ldquo;{issue.verifierComment}&rdquo;
+                </p>
+              )}
+            </section>
+          )}
+
+          {issue.status === "REWORK_REQUIRED" && (
+            <section className="rounded-2xl border border-amber-300 bg-amber-50 p-6">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="text-amber-700" size={28} />
+                <div>
+                  <h2 className="font-black text-amber-950 text-xl">Rework Requested by Auditor</h2>
+                  <p className="mt-1 text-sm text-amber-800">
+                    The auditor identified non-compliant aspects in the submitted work. Please review the directive below and upload new proof.
+                  </p>
+                </div>
+              </div>
+              {issue.verifierComment && (
+                <p className="mt-4 rounded-xl bg-white/80 p-4 text-sm font-bold text-amber-950 border border-amber-200">
+                  Auditor notes: &ldquo;{issue.verifierComment}&rdquo;
+                </p>
+              )}
+            </section>
+          )}
+
+          {/* Activity and Evidence Log */}
+          <section className="rounded-2xl border border-[#dfe6e1] bg-white p-5">
+            <h2 className="flex items-center gap-2 font-black text-lg">
+              <History size={18} />Evidence and Remediation Timeline
+            </h2>
+            {issue.evidence.length ? (
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {issue.evidence.map((item) => (
+                  <div key={item.id} className="rounded-xl border border-[#dfe6e1] p-4 bg-[#fafcfb]">
+                    <div className="flex items-center justify-between">
+                      <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#e9f3ee] text-[#0b5d45]">
+                        <FileImage size={20} />
+                      </span>
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${
+                          item.type === "AFTER"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-[#e5ebe8] text-[#55665e]"
+                        }`}
+                      >
+                        {item.type === "AFTER" ? "Proof of Work" : "Original Finding"}
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm font-black text-[#152e24]">{item.fileName}</p>
+                    <p className="mt-1 text-xs leading-5 text-[#66736c]">{item.description}</p>
+                    {item.aiAnalysis?.progressScore !== undefined && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className="rounded-md bg-[#0b5d45] px-2 py-0.5 text-[11px] font-black text-white">
+                          Score: {item.aiAnalysis.progressScore}%
+                        </span>
+                        <span className="text-[11px] text-[#4f645a]">
+                          {item.aiAnalysis.progressStage || "Assessment"}
+                        </span>
+                      </div>
+                    )}
+                    {item.aiSummary && (
+                      <p className="mt-2 rounded-lg bg-[#eff8f3] p-2 text-xs leading-5 text-[#526159] border border-[#d6e7dc]">
+                        AI Check: {item.aiSummary}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-4 rounded-xl border-2 border-dashed border-[#d5ddd8] p-7 text-center">
+                <Upload className="mx-auto text-[#91a099]" />
+                <p className="mt-2 text-sm font-bold">No completion evidence yet</p>
+              </div>
+            )}
+          </section>
+        </div>
+
+        {/* Right Sidebar */}
+        <aside className="space-y-5">
+          <div className="rounded-2xl border border-[#dfe6e1] bg-white p-5">
+            <h2 className="font-black">Original Finding &amp; Location</h2>
+            <div className="mt-4 grid h-44 place-items-center rounded-xl bg-[linear-gradient(135deg,#dce8e1,#f4e1d8)] text-center p-4">
+              <div>
+                <Camera className="mx-auto text-[#587468]" size={24} />
+                <p className="mt-2 text-xs font-black text-[#223b30] uppercase tracking-wider">
+                  {issue.category} finding
+                </p>
+                <p className="text-[11px] text-[#556960] mt-1 line-clamp-2">
+                  {issue.description}
+                </p>
+              </div>
+            </div>
+            <p className="mt-4 text-xs font-black uppercase tracking-wider text-[#b33c25]">
+              Remediation Mandated
+            </p>
+            <p className="mt-1 text-sm text-[#5f6d65]">
+              Universal NBC 2016 barrier removal required.
+            </p>
+          </div>
+
+          <EscalationTimeline level={issue.escalationLevel} />
+
+          {issue.evidence.some((e) => e.type === "AFTER") && (
+            <div className="rounded-2xl border border-[#cce0d6] bg-[#f2f8f5] p-5">
+              <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#0b5d45]">
+                <Sparkles size={15} />AI Evidence Analysis
+              </p>
+              <p className="mt-2 text-sm font-bold">After-photo screening passed.</p>
+              <p className="mt-1 text-xs text-[#66736c]">
+                Human verification by a certified auditor is required before ticket closure.
+              </p>
+            </div>
+          )}
+        </aside>
+      </div>
+    </AppShell>
+  );
 }
 
 export function VerificationView({ issueId }: { issueId?: string }) {

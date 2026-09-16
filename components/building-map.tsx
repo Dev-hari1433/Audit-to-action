@@ -7,6 +7,17 @@ const LeafletMap = dynamic(() => import("@/components/leaflet-map").then((module
   loading: () => <div className="grid h-full place-items-center text-sm font-bold text-[#607067]">Loading Chennai map…</div>,
 });
 
-export function BuildingMap() {
-  return <div className="h-[340px] overflow-hidden rounded-2xl border border-[#dfe6e1] bg-[#eaf0ec]"><LeafletMap /></div>;
+interface BuildingMapProps {
+  center?: [number, number];
+  zoom?: number;
+  targetBuildingId?: string;
+  className?: string;
+}
+
+export function BuildingMap({ center, zoom, targetBuildingId, className = "h-[340px]" }: BuildingMapProps) {
+  return (
+    <div className={`${className} overflow-hidden rounded-2xl border border-[#dfe6e1] bg-[#eaf0ec]`}>
+      <LeafletMap center={center} zoom={zoom} targetBuildingId={targetBuildingId} />
+    </div>
+  );
 }

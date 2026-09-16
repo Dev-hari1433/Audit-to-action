@@ -35,10 +35,12 @@ const nav = {
   ],
   AUDITOR: [
     ["Dashboard", "/auditor/dashboard", Gauge],
+    ["Complaints queue", "/auditor/complaints", FileWarning],
     ["Assigned buildings", "/auditor/buildings", Building2],
     ["Audits", "/auditor/audits", ClipboardCheck],
-    ["Issues", "/auditor/issues", FileWarning],
+    ["Issues", "/auditor/issues", Wrench],
     ["Verification", "/auditor/verification", ShieldCheck],
+    ["Reports to Admin", "/auditor/reports", ClipboardCheck],
   ],
   BUILDING_MANAGER: [
     ["Dashboard", "/manager/dashboard", Gauge],
@@ -46,12 +48,15 @@ const nav = {
   ],
   ADMIN: [
     ["Dashboard", "/admin/dashboard", BarChart3],
+    ["Auditor oversight", "/admin/auditors", Users],
+    ["Departments", "/admin/departments", Building2],
+    ["Rewards & penalties", "/admin/enforcement", ShieldCheck],
     ["Buildings", "/admin/buildings", Building2],
     ["Audits", "/admin/audits", ClipboardCheck],
     ["Issues", "/admin/issues", FileWarning],
     ["Escalations", "/admin/escalations", Siren],
-    ["Users", "/admin/users", Users],
     ["Citizen reports", "/admin/reports", FileWarning],
+    ["Users", "/admin/users", Users],
   ],
 } satisfies Record<Role, [string, string, typeof Gauge][]>;
 

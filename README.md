@@ -1,138 +1,192 @@
 # AccessTrack
 
-**From Accessibility Audit to Action**
+**From accessibility audit to verified action.**
 
-AccessTrack is a demo-ready accessibility accountability platform for public and private buildings in India. The Chennai pilot follows every barrier through a clear manual workflow:
+[Live demo](#live-demo) · [GitHub](https://github.com/Dev-hari1433/Audit-to-action) · [Report a barrier](#judge-walkthrough)
 
-`Audit → Finding → Responsible owner → Deadline → Repair → Evidence → Human verification → Closure`
+AccessTrack is an end-to-end accessibility accountability platform for public and private buildings. The Chennai pilot shows how a citizen report becomes assigned work, photo evidence, human verification, and public proof—not a PDF that sits on a shelf.
 
-Missed deadlines become overdue, trigger reminders, and move through three escalation levels. AI preliminary screening is a required workflow gate for complaint and completion photos, but it never verifies compliance; a human auditor always makes the final decision.
+```
+Citizen report (live camera + OTP)
+        ↓
+Auditor review & assignment
+        ↓
+Building department remediates
+        ↓
+After-photo evidence + AI screening
+        ↓
+Certified auditor verification
+        ↓
+Closure, public badges, or escalation
+```
 
-## Features
+AI can flag blurry photos and extract voice context. **AI never closes an issue.** Only a certified human auditor can approve and close work.
 
-- Four role workspaces: Citizen, Auditor, Building Manager, and Administrator
-- Public landing page, building directory, profiles, monitoring scores, and issue visibility
-- Mobile-first citizen reporting with mandatory phone OTP, live camera capture, multi-photo clarity checks, geolocation, voice input, and tracking IDs
-- Professional audit checklist covering entrance, movement, toilets, parking, and communication
-- Automatic issue creation for partial and non-compliant audit items
-- Admin assignment with responsible person, department, deadline, and required action
-- Manager work queue, progress updates, and before/after evidence upload
-- Human-only approve/reject verification with required comments and rework loop
-- Deadline, overdue, reminder, and three-level escalation presentation
-- Admin analytics with Recharts and a Leaflet/OpenStreetMap building map
-- In-app notification center
-- Required AI screening state with a deterministic demo engine when no external AI key is configured
-- Seeded fictional Chennai data: 20 buildings, 20 audits, 120 issues, and 28 role-based users
-- Local demo mode that persists changes in `localStorage`
-- Supabase schema, Row Level Security policies, storage bucket, and seed script
+---
 
-## Architecture
+## Live demo
 
-The project uses the Next.js App Router and keeps UI, mock state, service selection, and Supabase integration separate.
+| | |
+|---|---|
+| **Production** | *Deploying to Vercel — this README will be updated with the live URL.* |
+| **Source** | [github.com/Dev-hari1433/Audit-to-action](https://github.com/Dev-hari1433/Audit-to-action) |
 
-- `app/` — routes, layout, metadata, global styles
-- `components/` — reusable interface and workflow components
-- `components/views/` — public and role-specific product screens
-- `lib/mock-data.ts` — deterministic fictional demo dataset
-- `lib/store.tsx` — local demo workflow state and actions
-- `lib/supabase/` — Supabase client configuration
-- `services/data-service.ts` — demo/Supabase data-service boundary
-- `types/` — shared TypeScript domain types
-- `supabase/migrations/` — PostgreSQL schema and RLS policies
-- `supabase/seed.sql` — 20 buildings, 20 audits, and 120 issues
+Use **Demo login** on the site. No password is required.
 
-## Technology
+| Role | Demo persona | What to try |
+|---|---|---|
+| Citizen | Meena Kumar | File a report with camera, OTP, or voice |
+| Auditor | Arun Selvan | Review complaints, audit buildings, verify fixes |
+| Building manager | Kavitha Mani | Fix assigned issues and upload after-photos |
+| Administrator | Priya Raman | Workloads, departments, rewards, and penalties |
 
-- Next.js 16 App Router, React 19, and TypeScript
-- Tailwind CSS 4
-- Supabase PostgreSQL, Authentication, Storage, and RLS
-- Recharts
-- Leaflet + OpenStreetMap
-- React Hook Form + Zod
-- Lucide icons
-- Vinext/Vite output for OpenAI Sites hosting
+Demo OTP: `246810`  
+Use **Reset demo data** in the sidebar to restore the seeded Chennai dataset.
+
+---
+
+## Why this exists
+
+Accessibility audits often stop at a score. AccessTrack keeps every finding on a lifecycle:
+
+- **Owner** — a department is accountable
+- **Deadline** — missed dates become overdue automatically
+- **Evidence** — before and after photos are required
+- **Verification** — a human auditor compares proof
+- **Escalation** — three-level matrix when work stalls
+- **Public record** — buildings, badges, and verified proof without citizen PII
+
+---
+
+## What each workspace does
+
+### Citizen (`/citizen/...`, `/report`)
+
+- Ten barrier categories: entrance steps, ramp, lift, restroom, tactile paving, wayfinding, parking, handrails, corridors, service counters
+- Mandatory phone + OTP (demo code `246810`)
+- Live camera capture with blur/clarity checks and multi-angle photos
+- Voice reporting in English, Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, and Marathi
+- Complaint IDs (`ACC-2026-XXXXXX`) with timeline and follow-ups on the same ID
+
+### Auditor (`/auditor/...`)
+
+- Complaints queue: accept, reject, request info, or assign
+- 15-point checklist across entrance, movement, toilet, parking, and signage (Harmonised Guidelines)
+- Side-by-side before/after verification: approve & close, or reject for rework
+- Quarterly field reports to admin
+
+### Building manager (`/manager/...`)
+
+- Assigned issues by severity, department, and deadline
+- Progress 0–100% with civil-works notes
+- Mandatory after-photos, optional certificates, AI screening before submit
+
+### Administrator (`/admin/...`)
+
+- Pilot KPIs, compliance score, bottlenecks, overdue work
+- Auditor workload (`LOW` → `CRITICAL`) and one-click reassignment
+- Department velocity for public works, hospitals, and municipalities
+- Recognition badges or warnings, notices, and penalties
+- Public building directory with sanitized proof photos
+
+---
+
+## Stack
+
+| Layer | Choice |
+|---|---|
+| App | Next.js 16 (App Router), React 19, TypeScript |
+| UI | Tailwind CSS 4, Lucide |
+| Maps & charts | Leaflet / OpenStreetMap, Recharts |
+| Data | In-browser demo store, optional Supabase (Postgres + RLS) |
+| AI | `/api/ai/analyze-photo`, `/api/ai/extract-voice`, `/api/ai/chat` — Gemini/OpenAI when keys exist, heuristic fallback otherwise |
+| Voice | Web Speech API with a structured confirmation flow |
+
+---
 
 ## Local setup
 
-Requirements: Node.js 22.13 or later.
+**Requires Node.js 22.13 or later.**
 
 ```bash
+git clone https://github.com/Dev-hari1433/Audit-to-action.git
+cd Audit-to-action
 npm install
-copy .env.example .env.local
+cp .env.example .env.local   # optional
 npm run dev
 ```
 
-Open `http://localhost:3000`. Environment variables are optional for demo mode.
-
-Production validation:
+Open [http://localhost:3000](http://localhost:3000).
 
 ```bash
-npm run build
 npm run lint
+npx next build
 ```
 
-## Demo mode and accounts
+Without env keys the app runs in **high-fidelity demo mode** (local store + advisory AI fallbacks). Nothing extra is required to walk the full workflow.
 
-Choose **Demo login** on the landing page. No passwords are required.
+---
 
-| Role | Demo user | Main capability |
+## Environment
+
+Copy `.env.example` to `.env.local` (or set the same names in Vercel → Project → Settings → Environment Variables).
+
+| Variable | Required | Purpose |
 |---|---|---|
-| Citizen | Meena | Report and track barriers |
-| Auditor | Arun | Audit and verify work |
-| Building Manager | Kavitha | Fix assigned issues and upload evidence |
-| Administrator | Priya | Assign, monitor, and escalate |
+| `NEXT_PUBLIC_SITE_URL` | Recommended in production | Canonical URL for metadata / Open Graph |
+| `NEXT_PUBLIC_SUPABASE_URL` | Optional | Cloud database |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Optional | Supabase anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Optional | Server-side Supabase (never expose to the browser) |
+| `GEMINI_API_KEY` | Optional | Vision + voice extraction |
+| `OPENAI_API_KEY` | Optional | Alternate AI provider |
 
-Changes are stored in the browser. Use **Reset demo data** in the sidebar to restore the seeded state.
+### Optional Supabase
 
-## Judge walkthrough
+1. Create a project at [supabase.com](https://supabase.com)
+2. Run migrations in order:
+   - `supabase/migrations/202608290001_initial_schema.sql`
+   - `supabase/migrations/202608300001_full_features.sql`
+3. Run `supabase/seed.sql`
+4. Add the URL and keys above
 
-1. Log in as **Auditor** and open **Audits → New audit**.
-2. Select **Government General Hospital**. The ramp requirement is already marked **Not compliant** with an editable finding.
-3. Submit the audit; AccessTrack creates a new high-priority issue.
-4. Switch role to **Administrator**, open the newest issue, assign **Kavitha Mani / Hospital Engineering**, and set a deadline.
-5. Switch to **Building Manager**, open the assigned issue, click **Start work**, capture clear completion photos, wait for the required AI comparison, and submit for verification.
-6. Switch to **Auditor**, open **Verification**, review the original finding and evidence, add a comment, and choose **Approve & close** or **Rework required**.
-7. Return as **Administrator** to see the status, notifications, score context, overdue queue, and escalation path.
+---
 
-The seeded `ACC-1024` hospital ramp issue also demonstrates overdue and Level 2 escalation immediately.
+## Judge walkthrough (~5 minutes)
 
-## Supabase setup
+1. **Report** — `/report` → live camera or upload → verify phone with `246810` → optional **Report by Voice** → submit → copy the complaint ID.
+2. **Track** — `/citizen/reports` → open the complaint → add a follow-up on the same ID.
+3. **Assign** — Demo login as Auditor → `/auditor/complaints` → assign to *Hospital Engineering* with a 30-day deadline.
+4. **Fix** — Switch to Building Manager → `/manager/issues` → progress 100% → upload after-photo → submit for verification.
+5. **Verify** — Auditor → `/auditor/verification` → compare photos → **Approve & Close Issue**.
+6. **Govern** — Administrator → auditor oversight, departments, rewards & penalties.
+7. **Public** — `/buildings/bld-01` or `/buildings/bld-08` as a visitor: score, badges, verified proof, no citizen contact data.
 
-1. Create a Supabase project.
-2. Enable **Phone** authentication and configure an SMS provider (Twilio, MessageBird, Vonage, or an approved regional provider). For India, complete applicable TRAI DLT registration before production messaging.
-3. Run `supabase/migrations/202608290001_initial_schema.sql` in the SQL editor or through the Supabase CLI.
-4. Run `supabase/seed.sql` for fictional pilot data.
-5. Add the values below to `.env.local`:
+---
 
-```text
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...
+## Deploy on Vercel
+
+This repository is configured for Vercel (`vercel.json` uses `next build`).
+
+1. Import [Dev-hari1433/Audit-to-action](https://github.com/Dev-hari1433/Audit-to-action) in the [Vercel dashboard](https://vercel.com/new)
+2. Framework: **Next.js**
+3. Set `NEXT_PUBLIC_SITE_URL` to the production domain (for example `https://your-app.vercel.app`)
+4. Optionally add Gemini/OpenAI and Supabase keys
+5. Deploy — every push to `main` rebuilds production
+
+---
+
+## Project layout
+
+```
+app/                 Public pages, catch-all routes, AI API
+components/          Role workspaces, maps, evidence, voice, AI assistant
+lib/                 Demo store, geo helpers, Supabase client
+supabase/            Schema, feature migration, seed data
+types/               Shared TypeScript models
 ```
 
-The migration enables RLS, role policies, indexes, and a private 5 MB evidence bucket restricted to JPEG, PNG, WebP, and PDF. Never expose the service-role key in client code.
+---
 
-The phone OTP flow uses Supabase when these values are configured. Without them, the public demo uses the visible code `246810`, so the complete verification flow remains testable without sending paid SMS. Demo role switching remains intentionally frictionless for judging.
+## License
 
-## AI configuration
-
-AI screening is not skippable. Without an external key, the built-in demo engine completes image quality and relevance screening so the end-to-end prototype still works. To connect an external AI service, set server-only values:
-
-```text
-OPENAI_API_KEY=...
-OPENAI_MODEL=gpt-5-mini
-```
-
-Keep requests in a server action or route handler. Never send the key to the browser and never let model output set `VERIFIED` or `CLOSED`.
-
-## Deployment
-
-Set the environment variables in the hosting provider, set `NEXT_PUBLIC_SITE_URL` to the trusted public origin, and run the production build. The application remains fully usable in demo mode if Supabase or AI configuration is absent.
-
-## Security and accessibility
-
-- Zod input validation, safe file type/size checks, and private evidence storage
-- RLS policies scoped by authenticated profile role and ownership
-- No hard-coded secrets or real personal data
-- Semantic HTML, explicit labels, visible focus states, high contrast, keyboard navigation, responsive controls, and text-backed status badges
-- Monitoring scores are consistently labelled as non-legal certification
+Private / unpublished unless the repository owner adds a license. Demo data is fictional and intended for evaluation only.

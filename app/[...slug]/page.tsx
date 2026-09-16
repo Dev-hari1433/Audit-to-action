@@ -5,6 +5,11 @@ import { AdminBuildingsView, AdminDashboardView, AdminReportsView, AuditListView
 import { BuildingDetailView, BuildingsView, LoginView } from "@/components/views/public-views";
 import { RegisterView, ReportProblemView } from "@/components/views/verified-citizen-views";
 import { CitizenReportDetailView } from "@/components/views/citizen-report-detail";
+import { AuditorComplaintsView } from "@/components/views/auditor-complaints-view";
+import { AuditorReportsView } from "@/components/views/auditor-reports-view";
+import { AdminAuditorsView } from "@/components/views/admin-auditors-view";
+import { AdminDepartmentsView } from "@/components/views/admin-departments-view";
+import { AdminEnforcementView } from "@/components/views/admin-enforcement-view";
 
 interface CatchAllProps {
   params: Promise<{ slug: string[] }>;
@@ -28,6 +33,8 @@ export default async function CatchAllPage({ params, searchParams }: CatchAllPro
   if (section === "citizen" && area === "reports" && id) return <CitizenReportDetailView reportId={id} />;
 
   if (path === "/auditor/dashboard") return <AuditorDashboardView />;
+  if (path === "/auditor/complaints") return <AuditorComplaintsView />;
+  if (path === "/auditor/reports") return <AuditorReportsView />;
   if (path === "/auditor/buildings") return <AdminBuildingsView auditor />;
   if (path === "/auditor/audits") return <AuditListView />;
   if (path === "/auditor/audits/new") return <NewAuditView />;
@@ -41,6 +48,9 @@ export default async function CatchAllPage({ params, searchParams }: CatchAllPro
   if (section === "manager" && area === "issues" && id) return <IssueDetailView id={id} mode="manager" />;
 
   if (path === "/admin/dashboard") return <AdminDashboardView />;
+  if (path === "/admin/auditors") return <AdminAuditorsView />;
+  if (path === "/admin/departments") return <AdminDepartmentsView />;
+  if (path === "/admin/enforcement") return <AdminEnforcementView />;
   if (path === "/admin/buildings") return <AdminBuildingsView />;
   if (section === "admin" && area === "buildings" && id) return <AdminBuildingDetailView id={id} />;
   if (path === "/admin/audits") return <AuditListView admin />;

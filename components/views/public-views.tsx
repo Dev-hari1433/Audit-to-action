@@ -5,13 +5,14 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Building2, Camera, CheckCircle2, LocateFixed, MapPin, Mic, Search, ShieldCheck, Sparkles, UserRound } from "lucide-react";
+import { ArrowLeft, Building2, Camera, CheckCircle2, LocateFixed, MapPin, Mic, Search, ShieldCheck, Sparkles, UserRound, Award, Image as ImageIcon } from "lucide-react";
 import { BuildingCard } from "@/components/building-card";
 import { BrandLogo } from "@/components/brand-logo";
 import { BuildingMap } from "@/components/building-map";
 import { IssueCard } from "@/components/issue-card";
 import { ScoreCard } from "@/components/score-card";
 import { buildings, demoAccounts } from "@/lib/mock-data";
+import { findNearestBuilding, reverseGeocode } from "@/lib/geo-utils";
 import { useStore } from "@/lib/store";
 import type { Role } from "@/types";
 
@@ -43,8 +44,20 @@ export function ReportProblemView() {
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<ReportForm>({ resolver: zodResolver(reportSchema), defaultValues: { buildingId: "bld-01", category: "RAMP", description: "", location: "", contact: "" } });
   const onSubmit = (values: ReportForm) => setSubmittedId(submitReport(values).id);
   const useLocation = () => {
-    if (!navigator.geolocation) { setValue("location", "Main entrance"); return; }
-    navigator.geolocation.getCurrentPosition(() => setValue("location", "Main entrance — current location attached"), () => setValue("location", "Main entrance"));
+    if (!navigator.geolocation) { setValue("location", "Main entrance — Chennai"); return; }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const match = findNearestBuilding(lat, lng, buildings);
+        if (match) {
+          setValue("buildingId", match.building.id);
+        }
+        const geo = await reverseGeocode(lat, lng);
+        setValue("location", `${match ? match.building.name + " — " : ""}${geo.displayName}`);
+      },
+      () => setValue("location", "Main entrance — Chennai")
+    );
   };
   const startVoice = () => {
     const SpeechRecognition = (window as unknown as { webkitSpeechRecognition?: new () => { lang: string; start: () => void; onresult: (event: { results: { 0: { transcript: string } }[] }) => void; onend: () => void } }).webkitSpeechRecognition;
@@ -58,14 +71,230 @@ export function ReportProblemView() {
 }
 
 export function BuildingsView() {
+  const { buildings: storeBuildings } = useStore();
   const [query, setQuery] = useState("");
-  const filtered = useMemo(() => buildings.filter((building) => `${building.name} ${building.type} ${building.city}`.toLowerCase().includes(query.toLowerCase())), [query]);
+  const buildingList = storeBuildings && storeBuildings.length ? storeBuildings : buildings;
+  const filtered = useMemo(() => buildingList.filter((building) => `${building.name} ${building.type} ${building.city}`.toLowerCase().includes(query.toLowerCase())), [buildingList, query]);
   return <main className="min-h-screen bg-[#f3f6f4]"><PublicHeader /><section className="border-b border-[#dfe6e1] bg-[#12382d] py-12 text-white"><div className="mx-auto max-w-7xl px-5 sm:px-8"><p className="text-xs font-black uppercase tracking-[.18em] text-[#a8c9bd]">Public directory · Chennai pilot</p><h1 className="mt-2 text-4xl font-black">Building accessibility</h1><p className="mt-3 max-w-2xl text-[#cce0d8]">Clear monitoring scores, known barriers and verified improvements. Scores are for accountability—not legal certification.</p><label className="mt-7 flex max-w-xl items-center gap-3 rounded-xl bg-white px-4 py-3.5 text-[#17231d]"><Search size={19} className="text-[#6e7b73]" /><span className="sr-only">Search buildings</span><input value={query} onChange={(event) => setQuery(event.target.value)} className="w-full outline-none" placeholder="Search by building, type or area" /></label></div></section><div className="mx-auto max-w-7xl px-5 py-8 sm:px-8"><div className="mb-6 flex items-center justify-between"><p className="text-sm font-bold text-[#65736b]">{filtered.length} monitored buildings</p><div className="flex items-center gap-3 text-xs font-bold"><span><i className="mr-1 inline-block h-2.5 w-2.5 rounded-full bg-emerald-600" />Good</span><span><i className="mr-1 inline-block h-2.5 w-2.5 rounded-full bg-amber-500" />Needs work</span><span><i className="mr-1 inline-block h-2.5 w-2.5 rounded-full bg-red-600" />Priority</span></div></div><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{filtered.map((building) => <BuildingCard key={building.id} building={building} />)}</div></div></main>;
 }
 
 export function BuildingDetailView({ id }: { id: string }) {
-  const { issues } = useStore(); const building = buildings.find((item) => item.id === id) ?? buildings[0]; const buildingIssues = issues.filter((issue) => issue.buildingId === building.id).slice(0, 4);
-  return <main className="min-h-screen bg-[#f3f6f4]"><PublicHeader /><section className="border-b border-[#dfe6e1] bg-white"><div className="mx-auto max-w-7xl px-5 py-8 sm:px-8"><Link href="/buildings" className="inline-flex items-center gap-2 text-sm font-bold text-[#607067]"><ArrowLeft size={16} />All buildings</Link><div className="mt-6 flex flex-col justify-between gap-6 lg:flex-row lg:items-end"><div><div className="flex flex-wrap gap-2"><span className="rounded-full bg-[#e8f3ee] px-3 py-1 text-xs font-bold text-[#0b5d45]">{building.type}</span><span className="rounded-full bg-[#edf0ee] px-3 py-1 text-xs font-bold text-[#5d6a63]">{building.ownership}</span></div><h1 className="mt-3 text-4xl font-black tracking-tight">{building.name}</h1><p className="mt-2 flex items-center gap-2 text-[#65736b]"><MapPin size={17} />{building.address}, {building.city}</p></div><div className="w-full lg:w-[320px]"><ScoreCard score={building.score} compact /></div></div></div></section><div className="mx-auto grid max-w-7xl gap-6 px-5 py-8 sm:px-8 lg:grid-cols-[1fr_360px]"><section className="space-y-6"><div className="rounded-2xl border border-[#dfe6e1] bg-white p-6"><h2 className="text-xl font-black">Accessibility at a glance</h2><div className="mt-5 grid gap-3 sm:grid-cols-2">{[["Accessible entrance", building.features.entrance ? "Yes" : "No"],["Ramp", building.features.ramp],["Accessible toilet", building.features.toilet ? "Yes" : "No"],["Accessible parking", building.features.parking ? "Yes" : "No"]].map(([label,value]) => <div key={label as string} className="flex items-center justify-between rounded-xl bg-[#f4f7f5] p-4"><span className="text-sm font-bold text-[#5e6c64]">{label}</span><span className="text-sm font-black">{value}</span></div>)}</div><p className="mt-5 text-xs font-bold text-[#7d8982]">Last accessibility audit: {building.lastAudit}</p></div><div><div className="mb-4 flex items-end justify-between"><div><p className="text-xs font-black uppercase tracking-wider text-[#0b5d45]">Public accountability</p><h2 className="mt-1 text-xl font-black">Known open issues</h2></div><Link href="/report" className="text-sm font-bold text-[#d95425]">Report a problem</Link></div><div className="grid gap-3">{buildingIssues.map((issue) => <IssueCard key={issue.id} issue={issue} href={`/admin/issues/${issue.id}`} />)}</div></div><div><h2 className="mb-4 text-xl font-black">Location</h2><BuildingMap /></div></section><aside className="space-y-5"><div className="rounded-2xl border border-[#dfe6e1] bg-white p-5"><p className="text-xs font-black uppercase tracking-wider text-[#6a776f]">Score improvement</p><div className="mt-4 flex items-end justify-between gap-2">{[45,65,building.score].map((score,index) => <div key={score} className="flex-1 text-center"><div className="mx-auto w-full rounded-t-lg bg-[#bcd7ca]" style={{ height: `${score * 1.1}px`, background: index === 2 ? "#0b5d45" : undefined }} /><p className="mt-2 text-lg font-black">{score}</p><p className="text-[10px] text-[#77837c]">Audit {index + 1}</p></div>)}</div><p className="mt-5 text-xs text-[#718078]">Monitoring score — not a legal certification.</p></div><div className="rounded-2xl bg-[#12382d] p-6 text-white"><Building2 size={24} /><h2 className="mt-4 text-lg font-black">See a barrier here?</h2><p className="mt-2 text-sm leading-6 text-[#cbded7]">Send a photo and location in under one minute. Reports are tracked until resolution.</p><Link href="/report" className="mt-5 block rounded-xl bg-[#e15f2a] px-4 py-3 text-center font-black">Report problem</Link></div></aside></div></main>;
+  const { buildings: storeBuildings, issues, rewards } = useStore();
+  const buildingList = storeBuildings && storeBuildings.length ? storeBuildings : buildings;
+  const building = buildingList.find((item) => item.id === id) ?? buildingList[0];
+  const buildingIssues = issues.filter((issue) => issue.buildingId === building.id && issue.status !== "RESOLVED" && issue.status !== "CLOSED").slice(0, 4);
+  const buildingRewards = rewards.filter((reward) => reward.buildingId === building.id);
+  const resolvedIssuesWithEvidence = issues.filter(
+    (issue) => issue.buildingId === building.id && (issue.status === "RESOLVED" || issue.status === "CLOSED" || issue.evidence?.some((e) => e.type === "AFTER"))
+  );
+
+  return (
+    <main className="min-h-screen bg-[#f3f6f4]">
+      <PublicHeader />
+      <section className="border-b border-[#dfe6e1] bg-white">
+        <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
+          <Link href="/buildings" className="inline-flex items-center gap-2 text-sm font-bold text-[#607067]">
+            <ArrowLeft size={16} />All buildings
+          </Link>
+          <div className="mt-6 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-[#e8f3ee] px-3 py-1 text-xs font-bold text-[#0b5d45]">{building.type}</span>
+                <span className="rounded-full bg-[#edf0ee] px-3 py-1 text-xs font-bold text-[#5d6a63]">{building.ownership}</span>
+                {buildingRewards.length > 0 && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fef3c7] px-3 py-1 text-xs font-black text-[#92400e]">
+                    <Award size={13} className="text-[#d97706]" />
+                    {buildingRewards.length} Public Recognition{buildingRewards.length > 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+              <h1 className="mt-3 text-4xl font-black tracking-tight">{building.name}</h1>
+              <p className="mt-2 flex items-center gap-2 text-[#65736b]">
+                <MapPin size={17} />{building.address}, {building.city}
+              </p>
+            </div>
+            <div className="w-full lg:w-[320px]">
+              <ScoreCard score={building.score} compact />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto grid max-w-7xl gap-6 px-5 py-8 sm:px-8 lg:grid-cols-[1fr_360px]">
+        <section className="space-y-6">
+          {/* Public Badges & Rewards */}
+          {buildingRewards.length > 0 && (
+            <div className="rounded-2xl border border-[#f59e0b]/30 bg-[#fffbeb] p-6 shadow-sm">
+              <div className="flex items-center gap-2">
+                <Award className="text-[#d97706]" size={22} />
+                <h2 className="text-xl font-black text-[#78350f]">Government &amp; Civic Recognitions</h2>
+              </div>
+              <p className="mt-1 text-xs text-[#92400e]">
+                Official recognitions issued for exemplary accessibility remediation and compliance improvements.
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {buildingRewards.map((reward) => (
+                  <div key={reward.id} className="rounded-xl border border-[#fde68a] bg-white p-4 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#fef3c7] px-2.5 py-0.5 text-xs font-black text-[#92400e]">
+                        ★ {reward.rewardType}
+                      </span>
+                      <span className="text-[11px] font-bold text-[#78716c]">{reward.date}</span>
+                    </div>
+                    <p className="mt-2 text-sm font-black text-[#1c1917]">{reward.description}</p>
+                    <p className="mt-2 text-xs font-bold text-[#059669]">
+                      ✓ Validated in public accountability registry
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Accessibility Overview */}
+          <div className="rounded-2xl border border-[#dfe6e1] bg-white p-6">
+            <h2 className="text-xl font-black">Accessibility at a glance</h2>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {[
+                ["Accessible entrance", building.features.entrance ? "Yes" : "No"],
+                ["Ramp", building.features.ramp],
+                ["Accessible toilet", building.features.toilet ? "Yes" : "No"],
+                ["Accessible parking", building.features.parking ? "Yes" : "No"]
+              ].map(([label, value]) => (
+                <div key={label as string} className="flex items-center justify-between rounded-xl bg-[#f4f7f5] p-4">
+                  <span className="text-sm font-bold text-[#5e6c64]">{label}</span>
+                  <span className="text-sm font-black">{value}</span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-5 text-xs font-bold text-[#7d8982]">Last accessibility audit: {building.lastAudit}</p>
+          </div>
+
+          {/* Public Verified Work Proof (Before / After Photos) */}
+          {resolvedIssuesWithEvidence.length > 0 && (
+            <div className="rounded-2xl border border-[#b8dfce] bg-[#f4faf7] p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#0b5d45]">
+                    <ShieldCheck size={16} /> Verified Remediation Proof
+                  </span>
+                  <h2 className="mt-1 text-xl font-black text-[#10382b]">Completed Improvements</h2>
+                </div>
+                <span className="rounded-full bg-[#0b5d45] px-3 py-1 text-xs font-bold text-white">
+                  Auditor Approved
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-[#526f63]">
+                Work proof photos submitted by facility engineers and independently signed off by certified auditors. Citizen identities are protected and never displayed.
+              </p>
+
+              <div className="mt-5 space-y-4">
+                {resolvedIssuesWithEvidence.map((issue) => (
+                  <div key={issue.id} className="rounded-xl border border-[#cbe4d7] bg-white p-5 shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e7eee9] pb-3">
+                      <div>
+                        <span className="text-xs font-bold text-[#62776c]">{issue.id} · {issue.category}</span>
+                        <h3 className="text-base font-black text-[#172b22]">{issue.title}</h3>
+                      </div>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#e8f5ee] px-2.5 py-1 text-xs font-black text-[#0b5d45]">
+                        <CheckCircle2 size={13} /> Verified &amp; Closed
+                      </span>
+                    </div>
+
+                    <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                      <div className="rounded-lg border border-[#e2e8e4] bg-[#f9fbfa] p-3">
+                        <p className="text-[11px] font-black uppercase tracking-wider text-[#73877d]">Original Barrier</p>
+                        <p className="mt-1 text-xs text-[#394a42]">{issue.description}</p>
+                        <div className="mt-2 flex h-24 items-center justify-center rounded-md border border-dashed border-[#ccd9d1] bg-white text-xs font-bold text-[#86998f]">
+                          <ImageIcon size={18} className="mr-1.5 opacity-60" /> Documented in initial audit
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border border-[#bce0cf] bg-[#f0faf4] p-3">
+                        <p className="text-[11px] font-black uppercase tracking-wider text-[#0b5d45]">Verified Corrective Fix</p>
+                        <p className="mt-1 text-xs text-[#204939]">
+                          {issue.verifierComment || issue.evidence?.[0]?.description || "Remediated in accordance with Harmonised Guidelines standards."}
+                        </p>
+                        <div className="mt-2 flex h-24 items-center justify-center rounded-md border border-[#9fd3ba] bg-[#e1f5ec] text-xs font-extrabold text-[#0b5d45]">
+                          <Camera size={18} className="mr-1.5" /> High-clarity after-photo verified
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between text-[11px] text-[#6b7e74]">
+                      <span>Completed by: <strong className="font-bold text-[#1f382c]">{issue.department}</strong></span>
+                      <span>Verified by: <strong className="font-bold text-[#0b5d45]">{issue.auditorName || "Certified Auditor"}</strong></span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Open Issues (Public Accountability) */}
+          <div>
+            <div className="mb-4 flex items-end justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-wider text-[#0b5d45]">Public accountability</p>
+                <h2 className="mt-1 text-xl font-black">Known open issues</h2>
+              </div>
+              <Link href="/report" className="text-sm font-bold text-[#d95425]">Report a problem</Link>
+            </div>
+            {buildingIssues.length > 0 ? (
+              <div className="grid gap-3">
+                {buildingIssues.map((issue) => (
+                  <IssueCard key={issue.id} issue={issue} href={`/admin/issues/${issue.id}`} />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-[#d6e3dc] bg-white p-6 text-center text-sm font-bold text-[#0b5d45]">
+                ✓ All reported issues for this facility are currently resolved and verified!
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h2 className="mb-4 text-xl font-black">Location</h2>
+            <BuildingMap
+              targetBuildingId={building.id}
+              center={[building.latitude, building.longitude]}
+              zoom={15}
+            />
+          </div>
+        </section>
+
+        <aside className="space-y-5">
+          <div className="rounded-2xl border border-[#dfe6e1] bg-white p-5">
+            <p className="text-xs font-black uppercase tracking-wider text-[#6a776f]">Score improvement</p>
+            <div className="mt-4 flex items-end justify-between gap-2">
+              {[45, 65, building.score].map((score, index) => (
+                <div key={score} className="flex-1 text-center">
+                  <div
+                    className="mx-auto w-full rounded-t-lg bg-[#bcd7ca]"
+                    style={{ height: `${score * 1.1}px`, background: index === 2 ? "#0b5d45" : undefined }}
+                  />
+                  <p className="mt-2 text-lg font-black">{score}</p>
+                  <p className="text-[10px] text-[#77837c]">Audit {index + 1}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-5 text-xs text-[#718078]">Monitoring score — not a legal certification.</p>
+          </div>
+
+          <div className="rounded-2xl bg-[#12382d] p-6 text-white">
+            <Building2 size={24} />
+            <h2 className="mt-4 text-lg font-black">See a barrier here?</h2>
+            <p className="mt-2 text-sm leading-6 text-[#cbded7]">
+              Send a live camera photo and location in under one minute. Reports are tracked until resolution.
+            </p>
+            <Link href="/report" className="mt-5 block rounded-xl bg-[#e15f2a] px-4 py-3 text-center font-black">
+              Report problem
+            </Link>
+          </div>
+        </aside>
+      </div>
+    </main>
+  );
 }
 
 export function RegisterView() {

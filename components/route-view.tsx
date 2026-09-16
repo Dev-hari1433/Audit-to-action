@@ -8,6 +8,11 @@ import { AdminBuildingsView, AdminDashboardView, AdminReportsView, AuditListView
 import { BuildingDetailView, BuildingsView, LoginView } from "@/components/views/public-views";
 import { RegisterView, ReportProblemView } from "@/components/views/verified-citizen-views";
 import { CitizenReportDetailView } from "@/components/views/citizen-report-detail";
+import { AuditorComplaintsView } from "@/components/views/auditor-complaints-view";
+import { AuditorReportsView } from "@/components/views/auditor-reports-view";
+import { AdminAuditorsView } from "@/components/views/admin-auditors-view";
+import { AdminDepartmentsView } from "@/components/views/admin-departments-view";
+import { AdminEnforcementView } from "@/components/views/admin-enforcement-view";
 
 export function RouteView() {
   const pathname = usePathname();
@@ -25,6 +30,8 @@ export function RouteView() {
   if (parts[0] === "citizen" && parts[1] === "reports" && parts[2]) return <CitizenReportDetailView reportId={parts[2]} />;
 
   if (pathname === "/auditor/dashboard") return <AuditorDashboardView />;
+  if (pathname === "/auditor/complaints") return <AuditorComplaintsView />;
+  if (pathname === "/auditor/reports") return <AuditorReportsView />;
   if (pathname === "/auditor/buildings") return <AdminBuildingsView auditor />;
   if (pathname === "/auditor/audits") return <AuditListView />;
   if (pathname === "/auditor/audits/new") return <NewAuditView />;
@@ -38,6 +45,9 @@ export function RouteView() {
   if (parts[0] === "manager" && parts[1] === "issues" && parts[2]) return <IssueDetailView id={parts[2]} mode="manager" />;
 
   if (pathname === "/admin/dashboard") return <AdminDashboardView />;
+  if (pathname === "/admin/auditors") return <AdminAuditorsView />;
+  if (pathname === "/admin/departments") return <AdminDepartmentsView />;
+  if (pathname === "/admin/enforcement") return <AdminEnforcementView />;
   if (pathname === "/admin/buildings") return <AdminBuildingsView />;
   if (parts[0] === "admin" && parts[1] === "buildings" && parts[2]) return <AdminBuildingDetailView id={parts[2]} />;
   if (pathname === "/admin/audits") return <AuditListView admin />;
