@@ -1,0 +1,6 @@
+profile-readme/
+.next/
+.vinext/
+dist/
+node_modules/
+.env*

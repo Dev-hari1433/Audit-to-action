@@ -7,9 +7,9 @@
 ![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Vercel](https://img.shields.io/badge/Deploy-Vercel-000000?logo=vercel&logoColor=white)
+[![Vercel](https://img.shields.io/badge/Live_on-Vercel-000000?logo=vercel&logoColor=white)](https://audit-to-action.vercel.app)
 
-[Live demo](#live-demo) · [GitHub](https://github.com/Dev-hari1433/Audit-to-action) · [5-minute walkthrough](#judge-walkthrough-5-minutes)
+[Live demo](https://audit-to-action.vercel.app) · [GitHub](https://github.com/Dev-hari1433/Audit-to-action) · [5-minute walkthrough](#judge-walkthrough-5-minutes)
 
 ![AccessTrack dashboard preview](public/og.png)
 
@@ -47,7 +47,7 @@ AI can flag blurry photos and extract voice context. **AI never closes an issue.
 
 | | |
 |---|---|
-| **Production** | *Deploying to Vercel — this README will be updated with the live URL.* |
+| **Production** | [audit-to-action.vercel.app](https://audit-to-action.vercel.app) |
 | **Source** | [github.com/Dev-hari1433/Audit-to-action](https://github.com/Dev-hari1433/Audit-to-action) |
 
 Use **Demo login** on the site. No password is required.
@@ -188,7 +188,7 @@ This repository is configured for Vercel (`vercel.json` uses `next build`).
 
 1. Import [Dev-hari1433/Audit-to-action](https://github.com/Dev-hari1433/Audit-to-action) in the [Vercel dashboard](https://vercel.com/new)
 2. Framework: **Next.js**
-3. Set `NEXT_PUBLIC_SITE_URL` to the production domain (for example `https://your-app.vercel.app`)
+3. Set `NEXT_PUBLIC_SITE_URL` to `https://audit-to-action.vercel.app`
 4. Optionally add Gemini/OpenAI and Supabase keys
 5. Deploy — every push to `main` rebuilds production
 
